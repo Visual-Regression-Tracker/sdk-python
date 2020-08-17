@@ -114,7 +114,7 @@ def test__start__should_start_build(vrt, mock_request):
     projectId = 'asd'
     mock_request.return_value = {'id': buildId, 'projectId': projectId}
 
-    vrt._start()
+    vrt.start()
 
     mock_request.assert_called_once_with(
         f'{CONFIG.apiUrl}/builds',
@@ -132,7 +132,7 @@ def test__stop__should_stop_build(vrt, mock_request, mocker):
     vrt.buildId = buildId
     vrt._isStarted = mocker.Mock(return_value=True)
 
-    vrt._stop()
+    vrt.stop()
 
     mock_request.assert_called_once_with(
         f'{CONFIG.apiUrl}/builds/{buildId}',
@@ -147,7 +147,7 @@ def test__stop__should_throw_not_started(vrt, mock_request, mocker):
 
     with pytest.raises(Exception,
                        match='Visual Regression Tracker has not been started'):
-        vrt._stop()
+        vrt.stop()
 
 
 def test__submitTestResults__should_submit_test_run(vrt, mock_request):

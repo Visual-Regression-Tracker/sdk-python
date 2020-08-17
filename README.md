@@ -5,17 +5,21 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b9a9e660b0e14c6c9fb38c7cf09ab16c)](https://app.codacy.com/gh/Visual-Regression-Tracker/sdk-js?utm_source=github.com&utm_medium=referral&utm_content=Visual-Regression-Tracker/sdk-js&utm_campaign=Badge_Grade_Dashboard)
 
 ## Install
+
 ```python
 pip install visual_regression_tracker
 ```
 
 ## Usage
+
 ### Import
+
 ```python
 from visual_regression_tracker import VisualRegressionTracker, Config, TestRun
 ```
 
 ### Configure connection
+
 ```python
 config = Config(
     # apiUrl - URL where backend is running 
@@ -34,7 +38,14 @@ config = Config(
 vrt = VisualRegressionTracker(config)
 ```
 
-### Send image
+### Setup
+
+```python
+vrt.start();
+```
+
+### Assert
+
 ```python
 vrt.track(TestRun(
     # Name to be displayed
@@ -47,8 +58,8 @@ vrt.track(TestRun(
 
     # Allowed mismatch tollerance in %
     # Optional
-    # Default: 1%
-    diffTollerancePercent=0,
+    # Default: 0%
+    diffTollerancePercent=1,
 
     # Optional
     os='Mac',
@@ -62,4 +73,10 @@ vrt.track(TestRun(
     # Optional
     device='PC',
 ))
+```
+
+### Teardown
+
+```python
+vrt.stop();
 ```

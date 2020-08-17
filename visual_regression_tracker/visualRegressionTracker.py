@@ -17,7 +17,7 @@ class VisualRegressionTracker:
     def _isStarted(self):
         return self.buildId is not None and self.projectId is not None
 
-    def _start(self):
+    def start(self):
         data = {
             'branchName': self.config.branchName,
             'project': self.config.project,
@@ -32,7 +32,7 @@ class VisualRegressionTracker:
         self.buildId = build.id
         self.projectId = build.projectId
 
-    def _stop(self):
+    def stop(self):
         if not self._isStarted():
             raise Exception("Visual Regression Tracker has not been started")
 
