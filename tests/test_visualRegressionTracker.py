@@ -142,7 +142,8 @@ def test__stop__should_stop_build(vrt, mock_request, mocker):
 def test__stop__should_throw_not_started(vrt, mock_request, mocker):
     vrt._isStarted = mocker.Mock(return_value=False)
 
-    with pytest.raises(Exception, match='Visual Regression Tracker has not been started'):
+    with pytest.raises(Exception,
+                       match='Visual Regression Tracker has not been started'):
         vrt._stop()
 
 
@@ -201,7 +202,8 @@ def test__submitTestResults__should_throw_not_started(vrt, mocker):
     )
     vrt._isStarted = mocker.Mock(return_value=False)
 
-    with pytest.raises(Exception, match='Visual Regression Tracker has not been started'):
+    with pytest.raises(Exception,
+                       match='Visual Regression Tracker has not been started'):
         vrt._submitTestResult(testRun)
 
 
