@@ -1,7 +1,8 @@
 
 # Python SDK for [Visual Regression Tracker](https://github.com/Visual-Regression-Tracker/Visual-Regression-Tracker)
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/0b98190cea064d6f9f1210da653ba37b)](https://www.codacy.com/gh/Visual-Regression-Tracker/sdk-python?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Visual-Regression-Tracker/sdk-python&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/b6796a5b10954c69a2151b118e44a5af)](https://www.codacy.com/gh/Visual-Regression-Tracker/sdk-js?utm_source=github.com&utm_medium=referral&utm_content=Visual-Regression-Tracker/sdk-js&utm_campaign=Badge_Coverage)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b9a9e660b0e14c6c9fb38c7cf09ab16c)](https://app.codacy.com/gh/Visual-Regression-Tracker/sdk-js?utm_source=github.com&utm_medium=referral&utm_content=Visual-Regression-Tracker/sdk-js&utm_campaign=Badge_Grade_Dashboard)
 
 ## Install
 
