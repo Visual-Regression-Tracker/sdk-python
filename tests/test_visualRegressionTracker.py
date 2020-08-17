@@ -137,6 +137,7 @@ def test__stop__should_stop_build(vrt, mock_request, mocker):
     mock_request.assert_called_once_with(
         f'{CONFIG.apiUrl}/builds/{buildId}',
         'patch',
+        data={},
         headers={'apiKey': CONFIG.apiKey},
     )
 
