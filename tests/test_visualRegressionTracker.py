@@ -37,7 +37,9 @@ def test__isStarted(vrt, buildId, projectId, expectedResult):
     vrt.buildId = buildId
     vrt.projectId = projectId
 
-    assert vrt._isStarted() == expectedResult
+    result = vrt._isStarted()
+
+    assert result == expectedResult
 
 
 def test__track__should_track_success(vrt, mocker):
