@@ -11,35 +11,58 @@ class VisualRegressionTracker:
     headers: dict = None
 
     def __init__(self, config: Config):
+        """
+        Creates a new VisualRegressionTracker
+
+        :param config: The configuration to use.
+        """
         self.config = config
         self.headers = {'apiKey': self.config.apiKey}
 
-    def _startBuild(self):
-        if self.buildId:
-            return
+    def _isStarted(self):
+        return self.buildId is not None and self.projectId is not None
 
+    def start(self):
         data = {
             'branchName': self.config.branchName,
             'project': self.config.project,
         }
-        result = _http_post_json(
+        result = _http_request(
             f'{self.config.apiUrl}/builds',
+            'post',
             data,
             self.headers
         )
         build = _from_dict(result, Build)
+        self.buildId = build.id
+        self.projectId = build.projectId
 
-        if build.id:
-            self.buildId = build.id
-        else:
-            raise Exception("Build id is not defined")
+    def stop(self):
+        if not self._isStarted():
+            raise Exception("Visual Regression Tracker has not been started")
 
-        if build.projectId:
-            self.projectId = build.projectId
-        else:
-            raise Exception("Project id is not defined")
+        _http_request(
+            f'{self.config.apiUrl}/builds/{self.buildId}',
+            'patch',
+            data={},
+            headers=self.headers
+        )
+        self.buildId = None
+        self.projectId = None
+
+    def __enter__(self):
+        """Start the build."""
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Stop the build."""
+        self.stop()
 
     def _submitTestResult(self, test: TestRun) -> TestRunResult:
+        if not self._isStarted():
+            raise Exception("Visual Regression Tracker has not been started")
+
         data = _to_dict(test)
         data.update(
             buildId=self.buildId,
@@ -47,8 +70,9 @@ class VisualRegressionTracker:
             branchName=self.config.branchName,
         )
 
-        result = _http_post_json(
+        result = _http_request(
             f'{self.config.apiUrl}/test-runs',
+            'post',
             data,
             self.headers
         )
@@ -58,8 +82,6 @@ class VisualRegressionTracker:
         return testRunResult
 
     def track(self, test: TestRun):
-        self._startBuild()
-
         result = self._submitTestResult(test)
 
         if result.status == TestRunStatus.NEW:
@@ -68,8 +90,9 @@ class VisualRegressionTracker:
             raise Exception(f'Difference found: {result.url}')
 
 
-def _http_post_json(url: str, data: dict, headers: dict) -> dict:
-    response = requests.post(url, json=data, headers=headers)
+def _http_request(url: str, method: str, data: dict, headers: dict) -> dict:
+    request = getattr(requests, method.lower())
+    response = request(url, json=data, headers=headers)
     status = response.status_code
 
     if status == 401:
