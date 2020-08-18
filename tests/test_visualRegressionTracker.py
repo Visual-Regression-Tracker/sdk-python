@@ -150,6 +150,30 @@ def test__stop__should_throw_not_started(vrt, mock_request, mocker):
         vrt.stop()
 
 
+def test__enter__should_start_build(vrt, mocker):
+    vrt.start = mocker.Mock()
+    vrt.__enter__()
+    vrt.start.assert_called_once()
+
+
+def test__exit__should_stop_build(vrt, mocker):
+    vrt.stop = mocker.Mock()
+    vrt.__exit__(None, None, None)
+    vrt.stop.assert_called_once()
+
+
+def test__contextmanager__starts_and_stops_build(vrt, mocker):
+    vrt.start = mocker.Mock()
+    vrt.stop = mocker.Mock()
+
+    with vrt:
+        vrt.start.assert_called_once()
+        vrt.stop.assert_not_called()
+        
+    vrt.start.assert_called_once()
+    vrt.stop.assert_called_once()
+
+
 def test__submitTestResults__should_submit_test_run(vrt, mock_request):
     testRunResult = TestRunResult(
         url='url',

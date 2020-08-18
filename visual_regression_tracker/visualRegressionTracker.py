@@ -43,6 +43,12 @@ class VisualRegressionTracker:
             headers=self.headers
         )
 
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.stop()
+
     def _submitTestResult(self, test: TestRun) -> TestRunResult:
         if not self._isStarted():
             raise Exception("Visual Regression Tracker has not been started")

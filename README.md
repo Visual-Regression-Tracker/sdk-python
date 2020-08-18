@@ -37,10 +37,23 @@ config = Config(
 vrt = VisualRegressionTracker(config)
 ```
 
-### Setup
+### Setup / Teardown
 
+As context manager:
 ```python
-vrt.start();
+with vrt:
+    ...
+    # track test runs
+    ...
+```
+
+Without context manager:
+```python
+vrt.start()
+...
+# track test runs
+...
+vrt.stop()
 ```
 
 ### Assert
@@ -72,10 +85,4 @@ vrt.track(TestRun(
     # Optional
     device='PC',
 ))
-```
-
-### Teardown
-
-```python
-vrt.stop();
 ```
