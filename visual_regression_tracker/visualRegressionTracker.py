@@ -11,6 +11,10 @@ class VisualRegressionTracker:
     headers: dict = None
 
     def __init__(self, config: Config):
+        """Creates a new VisualRegressionTracker
+
+        :param config: The configuration to use.
+        """
         self.config = config
         self.headers = {'apiKey': self.config.apiKey}
 
