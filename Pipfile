@@ -10,14 +10,12 @@ requests = "*"
 pytest-cov = "*"
 pytest = "*"
 pytest-mock = "*"
-flake8 = "*"
 twine = "*"
 
 [pipenv]
 allow_prereleases = false
 
 [scripts]
-lint = "flake8 . --count --show-source --statistics"
 test = "python -m pytest --doctest-modules --junitxml=junit/test-results.xml --cov=visual_regression_tracker --cov-report=xml --cov-report=html"
 clean = "rm -rf dist/ build/ visual_regression_tracker.egg-info/ htmlcov/ junit/ .pytest_cache/ .coverage"
 build = "bash -c 'python setup.py sdist bdist_wheel && twine check dist/*'"
