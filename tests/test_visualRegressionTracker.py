@@ -166,7 +166,8 @@ def test__contextmanager__starts_and_stops_build(vrt, mocker):
     vrt.start = mocker.Mock()
     vrt.stop = mocker.Mock()
 
-    with vrt:
+    with vrt as actual:
+        assert vrt == actual
         vrt.start.assert_called_once()
         vrt.stop.assert_not_called()
 
