@@ -130,6 +130,7 @@ def test__start__should_start_build(vrt, mock_request):
 def test__stop__should_stop_build(vrt, mock_request, mocker):
     buildId = '1312'
     vrt.buildId = buildId
+    vrt.projectId = 'some id'
     vrt._isStarted = mocker.Mock(return_value=True)
 
     vrt.stop()
@@ -140,6 +141,8 @@ def test__stop__should_stop_build(vrt, mock_request, mocker):
         data={},
         headers={'apiKey': CONFIG.apiKey},
     )
+    assert vrt.buildId is None
+    assert vrt.projectId is None
 
 
 def test__stop__should_throw_not_started(vrt, mock_request, mocker):

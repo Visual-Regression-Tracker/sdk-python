@@ -47,6 +47,8 @@ class VisualRegressionTracker:
             data={},
             headers=self.headers
         )
+        self.buildId = None
+        self.projectId = None
 
     def __enter__(self):
         """Start the build."""
