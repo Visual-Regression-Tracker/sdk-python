@@ -44,10 +44,12 @@ class VisualRegressionTracker:
         )
 
     def __enter__(self):
+        """Start the build."""
         self.start()
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        """Stop the build."""
         self.stop()
 
     def _submitTestResult(self, test: TestRun) -> TestRunResult:
