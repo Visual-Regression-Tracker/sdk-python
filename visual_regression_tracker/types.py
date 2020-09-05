@@ -8,6 +8,7 @@ class Config:
     branchName: str = None
     project: str = None
     apiKey: str = None
+    enableSoftAssert: bool = False
 
 
 @dataclasses.dataclass

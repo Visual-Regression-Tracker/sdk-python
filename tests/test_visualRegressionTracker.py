@@ -1,17 +1,19 @@
 import pytest
+
 from visual_regression_tracker import \
     Config, VisualRegressionTracker, \
     TestRun, TestRunResult, TestRunStatus
-from visual_regression_tracker.visualRegressionTracker import \
-    _http_request
 from visual_regression_tracker.types import \
     _to_dict
+from visual_regression_tracker.visualRegressionTracker import \
+    _http_request
 
 CONFIG = Config(
     apiUrl='http://localhost:4200',
     branchName='develop',
     project='Default project',
     apiKey='CPKVK4JNK24NVNPNGVFQ853HXXEG',
+    enableSoftAssert=False,
 )
 
 
@@ -25,6 +27,14 @@ def mock_request(mocker):
 @pytest.fixture
 def vrt():
     yield VisualRegressionTracker(CONFIG)
+
+
+@pytest.fixture
+def mock_logging(mocker):
+    yield mocker.patch(
+        'visual_regression_tracker.visualRegressionTracker'
+        '.logging'
+    )
 
 
 @pytest.mark.parametrize('buildId,projectId,expectedResult', [
@@ -65,48 +75,47 @@ def test__track__should_track_success(vrt, mocker):
     vrt._submitTestResult.assert_called_once_with(testRun)
 
 
-def test__track__should_track_no_baseline(vrt, mocker):
-    testRun = TestRun(
-        name='name',
-        imageBase64='image',
-        os='os',
-        device='device',
-        viewport='viewport',
-        browser='browser',
+track_test_data = [
+    (
+        TestRunResult(
+            url='url',
+            status=TestRunStatus.NEW,
+            pixelMisMatchCount=12,
+            diffPercent=0.12,
+            diffTollerancePercent=0,
+        ),
+        'No baseline: url'
+    ),
+    (
+        TestRunResult(
+            url='url',
+            status=TestRunStatus.UNRESOLVED,
+            pixelMisMatchCount=12,
+            diffPercent=0.12,
+            diffTollerancePercent=0,
+        ),
+        'Difference found: url'
     )
-    testRunResult = TestRunResult(
-        url='url',
-        status=TestRunStatus.NEW,
-        pixelMisMatchCount=12,
-        diffPercent=0.12,
-        diffTollerancePercent=0,
-    )
-    vrt._submitTestResult = mocker.Mock(return_value=testRunResult)
-
-    with pytest.raises(Exception, match='No baseline: url'):
-        vrt.track(testRun)
+]
 
 
-def test__track__should_track_difference(vrt, mocker):
-    testRun = TestRun(
-        name='name',
-        imageBase64='image',
-        os='os',
-        device='device',
-        viewport='viewport',
-        browser='browser',
-    )
-    testRunResult = TestRunResult(
-        url='url',
-        status=TestRunStatus.UNRESOLVED,
-        pixelMisMatchCount=12,
-        diffPercent=0.12,
-        diffTollerancePercent=0,
-    )
-    vrt._submitTestResult = mocker.Mock(return_value=testRunResult)
+@pytest.mark.parametrize("test_run_result, expected_error", track_test_data)
+def test__track__should_raise_exception(test_run_result, expected_error, vrt, mocker):
+    vrt.config.enableSoftAssert = False
+    vrt._submitTestResult = mocker.Mock(return_value=test_run_result)
 
-    with pytest.raises(Exception, match='Difference found: url'):
-        vrt.track(testRun)
+    with pytest.raises(Exception, match=expected_error):
+        vrt.track(TestRun())
+
+
+@pytest.mark.parametrize("test_run_result, expected_error", track_test_data)
+def test__track__should_log_error(test_run_result, expected_error, vrt, mocker, mock_logging):
+    vrt.config.enableSoftAssert = True
+    vrt._submitTestResult = mocker.Mock(return_value=test_run_result)
+
+    vrt.track(TestRun())
+
+    mock_logging.error.assert_called_once_with(expected_error)
 
 
 def test__start__should_start_build(vrt, mock_request):
