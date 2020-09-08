@@ -1,5 +1,5 @@
 import pytest
-import logging 
+import logging
 
 from visual_regression_tracker import \
     Config, VisualRegressionTracker, \
