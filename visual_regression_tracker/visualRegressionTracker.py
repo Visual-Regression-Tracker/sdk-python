@@ -95,7 +95,7 @@ class VisualRegressionTracker:
 
         if error_message:
             if self.config.enableSoftAssert:
-                logging.error(error_message)
+                logging.getLogger(__name__).error(error_message)
             else:
                 raise Exception(error_message)
 

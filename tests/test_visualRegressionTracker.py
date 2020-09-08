@@ -1,4 +1,5 @@
 import pytest
+import logging 
 
 from visual_regression_tracker import \
     Config, VisualRegressionTracker, \
@@ -27,14 +28,6 @@ def mock_request(mocker):
 @pytest.fixture
 def vrt():
     yield VisualRegressionTracker(CONFIG)
-
-
-@pytest.fixture
-def mock_logging(mocker):
-    yield mocker.patch(
-        'visual_regression_tracker.visualRegressionTracker'
-        '.logging'
-    )
 
 
 @pytest.mark.parametrize('buildId,projectId,expectedResult', [
@@ -109,13 +102,17 @@ def test__track__should_raise_exception(test_run_result, expected_error, vrt, mo
 
 
 @pytest.mark.parametrize("test_run_result, expected_error", track_test_data)
-def test__track__should_log_error(test_run_result, expected_error, vrt, mocker, mock_logging):
+def test__track__should_log_error(test_run_result, expected_error, vrt, mocker, caplog):
     vrt.config.enableSoftAssert = True
     vrt._submitTestResult = mocker.Mock(return_value=test_run_result)
 
     vrt.track(TestRun())
 
-    mock_logging.error.assert_called_once_with(expected_error)
+    assert caplog.record_tuples == [(
+        "visual_regression_tracker.visualRegressionTracker",
+        logging.ERROR,
+        expected_error
+    )]
 
 
 def test__start__should_start_build(vrt, mock_request):
