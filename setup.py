@@ -12,5 +12,6 @@ setup(
     url='https://github.com/Visual-Regression-Tracker/'
         'Visual-Regression-Tracker',
     packages=['visual_regression_tracker'],
-    requires=['requests']
+    python_requires='>=3.6',
+    install_requires=['requests', 'dataclasses;python_version<"3.7"'],
 )
