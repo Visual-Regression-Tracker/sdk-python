@@ -32,6 +32,9 @@ config = Config(
 
     # branch - Current git branch 
     branchName='develop',
+
+    # enableSoftAssert - Log errors instead of exceptions
+    enableSoftAssert=False,
 )
 
 vrt = VisualRegressionTracker(config)

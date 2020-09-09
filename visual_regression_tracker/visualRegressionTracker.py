@@ -1,4 +1,7 @@
+import logging
+
 import requests
+
 from .types import \
     Config, Build, TestRun, TestRunResult, TestRunStatus, \
     _to_dict, _from_dict
@@ -84,10 +87,17 @@ class VisualRegressionTracker:
     def track(self, test: TestRun):
         result = self._submitTestResult(test)
 
-        if result.status == TestRunStatus.NEW:
-            raise Exception(f'No baseline: {result.url}')
-        if result.status == TestRunStatus.UNRESOLVED:
-            raise Exception(f'Difference found: {result.url}')
+        switcher = {
+            TestRunStatus.NEW: f'No baseline: {result.url}',
+            TestRunStatus.UNRESOLVED: f'Difference found: {result.url}'
+        }
+        error_message = switcher.get(result.status, '')
+
+        if error_message:
+            if self.config.enableSoftAssert:
+                logging.getLogger(__name__).error(error_message)
+            else:
+                raise Exception(error_message)
 
 
 def _http_request(url: str, method: str, data: dict, headers: dict) -> dict:
