@@ -104,6 +104,7 @@ def _http_request(url: str, method: str, data: dict, headers: dict) -> dict:
     request = getattr(requests, method.lower())
     response = request(url, json=data, headers=headers)
     status = response.status_code
+    result = response.json()
 
     if status == 401:
         raise Exception('Unauthorized')
@@ -111,7 +112,7 @@ def _http_request(url: str, method: str, data: dict, headers: dict) -> dict:
         raise Exception('Api key not authenticated')
     if status == 404:
         raise Exception('Project not found')
+    if status >= 400:
+        raise Exception(result)
 
-    response.raise_for_status()
-    result = response.json()
     return result

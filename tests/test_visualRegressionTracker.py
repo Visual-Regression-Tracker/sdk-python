@@ -1,5 +1,6 @@
-import pytest
 import logging
+
+import pytest
 
 from visual_regression_tracker import \
     Config, VisualRegressionTracker, \
@@ -258,29 +259,18 @@ def test__http_request__success(mocker):
     assert actual == expected
 
 
-def test__http_request__checks_status(mocker):
-    post = mocker.patch('requests.post')
-    response = post.return_value = mocker.Mock()
-    response.status_code = 200
-    response.raise_for_status.side_effect = Exception('oh no')
-
-    with pytest.raises(Exception, match='oh no'):
-        _http_request('url', 'post', {'1': 2}, {2: '3'})
-
-    post.assert_called_once_with('url', json={'1': 2}, headers={2: '3'})
-
-
-@pytest.mark.parametrize('status_code,expected_match', [
-    (401, 'Unauthorized'),
-    (403, 'Api key not authenticated'),
-    (404, 'Project not found'),
+@pytest.mark.parametrize('status_code,response_body,expected_match', [
+    (401, '{}', 'Unauthorized'),
+    (403, '{}', 'Api key not authenticated'),
+    (404, '{}', 'Project not found'),
+    (500, '{"some": "data"}', '{"some": "data"}'),
 ])
 def test__http_request__maps_status_code(
-        mocker, status_code, expected_match):
+        mocker, status_code, response_body, expected_match):
     post = mocker.patch('requests.post')
     response = post.return_value = mocker.Mock()
     response.status_code = status_code
-    response.json.side_effect = Exception('oh no')
+    response.json = mocker.Mock(return_value=response_body)
     response.raise_for_status.side_effect = Exception('oh no')
 
     with pytest.raises(Exception, match=expected_match):
