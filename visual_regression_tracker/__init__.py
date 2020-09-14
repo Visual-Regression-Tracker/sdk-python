@@ -20,11 +20,11 @@ Basic usage:
 """
 
 from .types import Config, Build, TestRun, TestRunResult, TestRunStatus
-from .exceptions import VisualRegressionTrackerError, ServerError, TestFailed
+from .exceptions import VisualRegressionTrackerError, ServerError, TestRunError
 from .visualRegressionTracker import VisualRegressionTracker
 
 __all__ = [
     'Config', 'Build', 'TestRun', 'TestRunResult', 'TestRunStatus',
-    'VisualRegressionTrackerError', 'ServerError', 'TestFailed',
+    'VisualRegressionTrackerError', 'ServerError', 'TestRunError',
     'VisualRegressionTracker',
 ]

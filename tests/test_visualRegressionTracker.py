@@ -5,7 +5,7 @@ import pytest
 from visual_regression_tracker import \
     Config, VisualRegressionTracker, \
     TestRun, TestRunResult, TestRunStatus, \
-    ServerError, TestFailed, VisualRegressionTrackerError
+    ServerError, TestRunError, VisualRegressionTrackerError
 from visual_regression_tracker.types import \
     _to_dict
 from visual_regression_tracker.visualRegressionTracker import \
@@ -99,7 +99,7 @@ def test__track__should_raise_exception(test_run_result, expected_error, vrt, mo
     vrt.config.enableSoftAssert = False
     vrt._submitTestResult = mocker.Mock(return_value=test_run_result)
 
-    with pytest.raises(TestFailed, match=expected_error):
+    with pytest.raises(TestRunError, match=expected_error):
         vrt.track(TestRun())
 
 

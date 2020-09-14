@@ -6,7 +6,7 @@ from .types import \
     Config, Build, TestRun, TestRunResult, TestRunStatus, \
     _to_dict, _from_dict
 from .exceptions import \
-    ServerError, TestFailed, VisualRegressionTrackerError
+    ServerError, TestRunError, VisualRegressionTrackerError
 
 
 class VisualRegressionTracker:
@@ -99,7 +99,7 @@ class VisualRegressionTracker:
             if self.config.enableSoftAssert:
                 logging.getLogger(__name__).error(error_message)
             else:
-                raise TestFailed(result.status, error_message)
+                raise TestRunError(result.status, error_message)
 
 
 def _http_request(url: str, method: str, data: dict, headers: dict) -> dict:
