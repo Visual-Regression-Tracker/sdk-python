@@ -19,6 +19,6 @@ class TestRunError(VisualRegressionTrackerError):
     """A visual test failed."""
 
     def __init__(self, status: TestRunStatus, *args):
-        """Initialises TestFailed error."""
+        """Initialises TestRunError error."""
         self.status = status
         super(TestRunError, self).__init__(*args)
