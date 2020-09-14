@@ -4,7 +4,8 @@ import pytest
 
 from visual_regression_tracker import \
     Config, VisualRegressionTracker, \
-    TestRun, TestRunResult, TestRunStatus
+    TestRun, TestRunResult, TestRunStatus, \
+    ServerError, TestFailed, VisualRegressionTrackerError
 from visual_regression_tracker.types import \
     _to_dict
 from visual_regression_tracker.visualRegressionTracker import \
@@ -98,7 +99,7 @@ def test__track__should_raise_exception(test_run_result, expected_error, vrt, mo
     vrt.config.enableSoftAssert = False
     vrt._submitTestResult = mocker.Mock(return_value=test_run_result)
 
-    with pytest.raises(Exception, match=expected_error):
+    with pytest.raises(TestFailed, match=expected_error):
         vrt.track(TestRun())
 
 
@@ -155,7 +156,7 @@ def test__stop__should_stop_build(vrt, mock_request, mocker):
 def test__stop__should_throw_not_started(vrt, mock_request, mocker):
     vrt._isStarted = mocker.Mock(return_value=False)
 
-    with pytest.raises(Exception,
+    with pytest.raises(VisualRegressionTrackerError,
                        match='Visual Regression Tracker has not been started'):
         vrt.stop()
 
@@ -240,7 +241,7 @@ def test__submitTestResults__should_throw_not_started(vrt, mocker):
     )
     vrt._isStarted = mocker.Mock(return_value=False)
 
-    with pytest.raises(Exception,
+    with pytest.raises(VisualRegressionTrackerError,
                        match='Visual Regression Tracker has not been started'):
         vrt._submitTestResult(testRun)
 
@@ -260,10 +261,10 @@ def test__http_request__success(mocker):
 
 
 @pytest.mark.parametrize('status_code,response_body,expected_match', [
-    (401, '{}', 'Unauthorized'),
-    (403, '{}', 'Api key not authenticated'),
-    (404, '{}', 'Project not found'),
-    (500, '{"some": "data"}', '{"some": "data"}'),
+    (401, {}, 'Unauthorized'),
+    (403, {}, 'Api key not authenticated'),
+    (404, {}, 'Project not found'),
+    (500, {'message': 'exception message'}, 'exception message'),
 ])
 def test__http_request__maps_status_code(
         mocker, status_code, response_body, expected_match):
@@ -273,7 +274,7 @@ def test__http_request__maps_status_code(
     response.json = mocker.Mock(return_value=response_body)
     response.raise_for_status.side_effect = Exception('oh no')
 
-    with pytest.raises(Exception, match=expected_match):
+    with pytest.raises(ServerError, match=expected_match):
         _http_request('url', 'post', {'1': 2}, {2: '3'})
 
     post.assert_called_once_with('url', json={'1': 2}, headers={2: '3'})
