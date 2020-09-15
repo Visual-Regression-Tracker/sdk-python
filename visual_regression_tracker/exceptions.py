@@ -2,11 +2,13 @@ from .types import TestRunStatus
 
 
 class VisualRegressionTrackerError(Exception):
+
     """An error occurred."""
     pass
 
 
 class ServerError(VisualRegressionTrackerError):
+
     """An error occurred on the VisualRegressionTracker server."""
 
     def __init__(self, response: dict, *args):
@@ -16,6 +18,7 @@ class ServerError(VisualRegressionTrackerError):
 
 
 class TestRunError(VisualRegressionTrackerError):
+
     """A visual test failed."""
 
     def __init__(self, status: TestRunStatus, *args):
