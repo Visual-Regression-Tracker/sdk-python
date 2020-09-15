@@ -3,7 +3,6 @@ from .types import TestRunStatus
 
 class VisualRegressionTrackerError(Exception):
     """An error occurred."""
-    
     pass
 
 
