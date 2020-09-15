@@ -1,3 +1,4 @@
+import json
 import logging
 
 import requests
@@ -109,12 +110,12 @@ def _http_request(url: str, method: str, data: dict, headers: dict) -> dict:
     result = response.json()
 
     if status == 401:
-        raise ServerError({}, 'Unauthorized')
+        raise ServerError('Unauthorized')
     if status == 403:
-        raise ServerError({}, 'Api key not authenticated')
+        raise ServerError('Api key not authenticated')
     if status == 404:
-        raise ServerError({}, 'Project not found')
+        raise ServerError('Project not found')
     if status >= 400:
-        raise ServerError(result, result.get('message', 'An error occurred'))
+        raise ServerError(json.dumps(result, indent=2))
 
     return result

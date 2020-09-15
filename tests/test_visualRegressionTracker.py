@@ -1,4 +1,6 @@
+import json
 import logging
+import re
 
 import pytest
 
@@ -264,7 +266,7 @@ def test__http_request__success(mocker):
     (401, {}, 'Unauthorized'),
     (403, {}, 'Api key not authenticated'),
     (404, {}, 'Project not found'),
-    (500, {'message': 'exception message'}, 'exception message'),
+    (500, '{"message": "exception message"}', json.dumps('{"message": "exception message"}', indent=2)),
 ])
 def test__http_request__maps_status_code(
         mocker, status_code, response_body, expected_match):
@@ -274,7 +276,7 @@ def test__http_request__maps_status_code(
     response.json = mocker.Mock(return_value=response_body)
     response.raise_for_status.side_effect = Exception('oh no')
 
-    with pytest.raises(ServerError, match=expected_match):
+    with pytest.raises(ServerError, match=re.escape(expected_match)):
         _http_request('url', 'post', {'1': 2}, {2: '3'})
 
     post.assert_called_once_with('url', json={'1': 2}, headers={2: '3'})
