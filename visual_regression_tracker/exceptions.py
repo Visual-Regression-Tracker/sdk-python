@@ -12,7 +12,6 @@ class ServerError(VisualRegressionTrackerError):
 
     def __init__(self, response: dict, *args):
         """Initialises ServerError from server response."""
-
         self.response = response
         super(ServerError, self).__init__(*args)
 
@@ -22,6 +21,5 @@ class TestRunError(VisualRegressionTrackerError):
 
     def __init__(self, status: TestRunStatus, *args):
         """Initialises TestRunError error."""
-
         self.status = status
         super(TestRunError, self).__init__(*args)
