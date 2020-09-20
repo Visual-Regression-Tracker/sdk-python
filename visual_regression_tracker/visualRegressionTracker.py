@@ -1,3 +1,4 @@
+import json
 import logging
 
 import requests
@@ -5,6 +6,8 @@ import requests
 from .types import \
     Config, Build, TestRun, TestRunResult, TestRunStatus, \
     _to_dict, _from_dict
+from .exceptions import \
+    ServerError, TestRunError, VisualRegressionTrackerError
 
 
 class VisualRegressionTracker:
@@ -42,7 +45,7 @@ class VisualRegressionTracker:
 
     def stop(self):
         if not self._isStarted():
-            raise Exception("Visual Regression Tracker has not been started")
+            raise VisualRegressionTrackerError("Visual Regression Tracker has not been started")
 
         _http_request(
             f'{self.config.apiUrl}/builds/{self.buildId}',
@@ -64,7 +67,7 @@ class VisualRegressionTracker:
 
     def _submitTestResult(self, test: TestRun) -> TestRunResult:
         if not self._isStarted():
-            raise Exception("Visual Regression Tracker has not been started")
+            raise VisualRegressionTrackerError("Visual Regression Tracker has not been started")
 
         data = _to_dict(test)
         data.update(
@@ -97,21 +100,22 @@ class VisualRegressionTracker:
             if self.config.enableSoftAssert:
                 logging.getLogger(__name__).error(error_message)
             else:
-                raise Exception(error_message)
+                raise TestRunError(result.status, error_message)
 
 
 def _http_request(url: str, method: str, data: dict, headers: dict) -> dict:
     request = getattr(requests, method.lower())
     response = request(url, json=data, headers=headers)
     status = response.status_code
+    result = response.json()
 
     if status == 401:
-        raise Exception('Unauthorized')
+        raise ServerError('Unauthorized')
     if status == 403:
-        raise Exception('Api key not authenticated')
+        raise ServerError('Api key not authenticated')
     if status == 404:
-        raise Exception('Project not found')
+        raise ServerError('Project not found')
+    if status >= 400:
+        raise ServerError(json.dumps(result, indent=2))
 
-    response.raise_for_status()
-    result = response.json()
     return result
