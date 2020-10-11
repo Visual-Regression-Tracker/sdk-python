@@ -35,12 +35,31 @@ class TestRunStatus(enum.Enum):
 
 
 @dataclasses.dataclass
-class TestRunResult:
+class TestRunResponse:
+    id: str = None
+    imageName: str = None
+    diffName: str = None
+    baselineName: str = None
     url: str = None
+    merge: bool = False
     status: TestRunStatus = None
     pixelMisMatchCount: float = None
     diffPercent: float = None
     diffTollerancePercent: float = None
+
+
+@dataclasses.dataclass
+class TestRunResult:
+    testRunResponse: TestRunResponse = None
+    imageUrl: str = None
+    diffUrl: str = None
+    baselineUrl: str = None
+
+    def __init__(self, test_run_response: TestRunResponse, api_url: str):
+        self.testRunResponse = test_run_response
+        self.imageUrl = f'{api_url}/{test_run_response.imageName}'
+        self.diffUrl = test_run_response.diffName and f'{api_url}/{test_run_response.diffName}'
+        self.baselineUrl = test_run_response.baselineName and f'{api_url}/{test_run_response.baselineName}'
 
 
 def _to_dict(obj):
