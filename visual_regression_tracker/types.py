@@ -56,6 +56,12 @@ class TestRunResult:
     baselineUrl: str = None
 
     def __init__(self, test_run_response: TestRunResponse, api_url: str):
+        """
+        Converts image names into urls
+
+        :param test_run_response: The response to convert.
+        :param api_url: URL to use in image urls
+        """
         self.testRunResponse = test_run_response
         self.imageUrl = f'{api_url}/{test_run_response.imageName}'
         self.diffUrl = test_run_response.diffName and f'{api_url}/{test_run_response.diffName}'
