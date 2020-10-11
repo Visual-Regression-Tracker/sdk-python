@@ -5,7 +5,7 @@ import requests
 
 from .types import \
     Config, Build, TestRun, TestRunResponse, TestRunStatus, \
-    _to_dict, _from_dict
+    _to_dict, _from_dict, TestRunResult
 from .exceptions import \
     ServerError, TestRunError, VisualRegressionTrackerError
 
@@ -101,6 +101,8 @@ class VisualRegressionTracker:
                 logging.getLogger(__name__).error(error_message)
             else:
                 raise TestRunError(result.status, error_message)
+
+        return TestRunResult(result, self.config.apiUrl)
 
 
 def _http_request(url: str, method: str, data: dict, headers: dict) -> dict:

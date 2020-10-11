@@ -50,7 +50,7 @@ def test__isStarted(vrt, buildId, projectId, expectedResult):
 
 
 def test__track__should_track_success(vrt, mocker):
-    testRun = TestRun(
+    test_run = TestRun(
         name='name',
         imageBase64='image',
         os='os',
@@ -58,18 +58,25 @@ def test__track__should_track_success(vrt, mocker):
         viewport='viewport',
         browser='browser',
     )
-    testRunResult = TestRunResponse(
+    test_run_response = TestRunResponse(
         url='url',
         status=TestRunStatus.OK,
         pixelMisMatchCount=12,
         diffPercent=0.12,
         diffTollerancePercent=0,
+        imageName='imageName',
+        diffName='diffName',
+        baselineName='baselineName'
     )
-    vrt._submitTestResult = mocker.Mock(return_value=testRunResult)
+    vrt._submitTestResult = mocker.Mock(return_value=test_run_response)
 
-    vrt.track(testRun)
+    test_run_result = vrt.track(test_run)
 
-    vrt._submitTestResult.assert_called_once_with(testRun)
+    vrt._submitTestResult.assert_called_once_with(test_run)
+    assert test_run_result.testRunResponse == test_run_response
+    assert test_run_result.imageUrl == f'{CONFIG.apiUrl}/{test_run_response.imageName}'
+    assert test_run_result.diffUrl == f'{CONFIG.apiUrl}/{test_run_response.diffName}'
+    assert test_run_result.baselineUrl == f'{CONFIG.apiUrl}/{test_run_response.baselineName}'
 
 
 track_test_data = [

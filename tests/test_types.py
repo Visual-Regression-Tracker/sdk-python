@@ -1,7 +1,7 @@
 import pytest
 
 from visual_regression_tracker.types import \
-    Build, _to_dict, _from_dict, TestRunResponse, TestRunStatus, TestRunResult
+    Build, _to_dict, _from_dict, TestRunResponse, TestRunResult
 
 
 @pytest.mark.parametrize('data, clazz, expected', [
@@ -28,10 +28,9 @@ def test__to_dict(obj, expected):
 
 def test__TestRunResult_all_images():
     test_run_response = TestRunResponse(
-        "someId",
-        "imageName",
-        "diffName",
-        "baselineName",
+        imageName="imageName",
+        diffName="diffName",
+        baselineName="baselineName",
     )
 
     result = TestRunResult(test_run_response, "http://localhost")
@@ -44,10 +43,9 @@ def test__TestRunResult_all_images():
 
 def test__TestRunResult_only_required_images():
     test_run_response = TestRunResponse(
-        "someId",
-        "imageName",
-        None,
-        None,
+        imageName="imageName",
+        diffName=None,
+        baselineName=None,
     )
 
     result = TestRunResult(test_run_response, "http://localhost")
