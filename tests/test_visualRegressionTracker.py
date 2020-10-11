@@ -6,7 +6,7 @@ import pytest
 
 from visual_regression_tracker import \
     Config, VisualRegressionTracker, \
-    TestRun, TestRunResult, TestRunStatus, \
+    TestRun, TestRunResponse, TestRunStatus, \
     ServerError, TestRunError, VisualRegressionTrackerError
 from visual_regression_tracker.types import \
     _to_dict
@@ -58,7 +58,7 @@ def test__track__should_track_success(vrt, mocker):
         viewport='viewport',
         browser='browser',
     )
-    testRunResult = TestRunResult(
+    testRunResult = TestRunResponse(
         url='url',
         status=TestRunStatus.OK,
         pixelMisMatchCount=12,
@@ -74,7 +74,7 @@ def test__track__should_track_success(vrt, mocker):
 
 track_test_data = [
     (
-        TestRunResult(
+        TestRunResponse(
             url='url',
             status=TestRunStatus.NEW,
             pixelMisMatchCount=12,
@@ -84,7 +84,7 @@ track_test_data = [
         'No baseline: url'
     ),
     (
-        TestRunResult(
+        TestRunResponse(
             url='url',
             status=TestRunStatus.UNRESOLVED,
             pixelMisMatchCount=12,
@@ -189,7 +189,7 @@ def test__contextmanager__starts_and_stops_build(vrt, mocker):
 
 
 def test__submitTestResults__should_submit_test_run(vrt, mock_request):
-    testRunResult = TestRunResult(
+    testRunResult = TestRunResponse(
         url='url',
         status=TestRunStatus.UNRESOLVED,
         pixelMisMatchCount=12,

@@ -4,7 +4,7 @@ import logging
 import requests
 
 from .types import \
-    Config, Build, TestRun, TestRunResult, TestRunStatus, \
+    Config, Build, TestRun, TestRunResponse, TestRunStatus, \
     _to_dict, _from_dict
 from .exceptions import \
     ServerError, TestRunError, VisualRegressionTrackerError
@@ -65,7 +65,7 @@ class VisualRegressionTracker:
         """Stop the build."""
         self.stop()
 
-    def _submitTestResult(self, test: TestRun) -> TestRunResult:
+    def _submitTestResult(self, test: TestRun) -> TestRunResponse:
         if not self._isStarted():
             raise VisualRegressionTrackerError("Visual Regression Tracker has not been started")
 
@@ -83,7 +83,7 @@ class VisualRegressionTracker:
             self.headers
         )
         result['status'] = TestRunStatus(result['status'])
-        testRunResult = _from_dict(result, TestRunResult)
+        testRunResult = _from_dict(result, TestRunResponse)
 
         return testRunResult
 
