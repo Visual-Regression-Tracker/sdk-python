@@ -5,7 +5,7 @@ import re
 import pytest
 
 from visual_regression_tracker import \
-    Config, VisualRegressionTracker, \
+    Config, IgnoreArea, VisualRegressionTracker, \
     TestRun, TestRunResponse, TestRunStatus, \
     ServerError, TestRunError, VisualRegressionTrackerError
 from visual_regression_tracker.types import \
@@ -210,6 +210,7 @@ def test__submitTestResults__should_submit_test_run(vrt, mock_request):
         device='device',
         viewport='viewport',
         browser='browser',
+        ignoreAreas=[IgnoreArea(1, 2, 3, 4)]
     )
     buildId = '1312'
     projectId = 'asd'
@@ -234,6 +235,14 @@ def test__submitTestResults__should_submit_test_run(vrt, mock_request):
             'buildId': buildId,
             'projectId': projectId,
             'branchName': CONFIG.branchName,
+            'ignoreAreas': [
+                { 
+                    'x': 1,
+                    'y': 2,
+                    'width': 3,
+                    'height': 4,
+                }
+            ]
         },
         {'apiKey': CONFIG.apiKey},
     )

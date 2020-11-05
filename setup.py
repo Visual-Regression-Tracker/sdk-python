@@ -13,5 +13,5 @@ setup(
         'Visual-Regression-Tracker',
     packages=['visual_regression_tracker'],
     python_requires='>=3.6',
-    install_requires=['requests', 'dataclasses;python_version<"3.7"'],
+    install_requires=['requests', 'dacite', 'dataclasses;python_version<"3.7"'],
 )
