@@ -236,7 +236,7 @@ def test__submitTestResults__should_submit_test_run(vrt, mock_request):
             'projectId': projectId,
             'branchName': CONFIG.branchName,
             'ignoreAreas': [
-                { 
+                {
                     'x': 1,
                     'y': 2,
                     'width': 3,

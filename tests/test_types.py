@@ -27,7 +27,7 @@ def test__from_dict(data, clazz, expected):
     (Build(None, 2), {'projectId': 2}),
     (TestRun(name='name', ignoreAreas=None), {'name': 'name'}),
     (
-        TestRun(name='name', ignoreAreas=[]), 
+        TestRun(name='name', ignoreAreas=[]),
         {'name': 'name', 'ignoreAreas':[]}
     ),
     (
