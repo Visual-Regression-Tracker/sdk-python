@@ -49,14 +49,14 @@ class TestRunStatus(enum.Enum):
 class TestRunResponse:
     id: str = None
     imageName: str = None
-    diffName: str = None
-    baselineName: str = None
+    diffName: typing.Optional[str] = None
+    baselineName: typing.Optional[str] = None
     url: str = None
     merge: bool = False
     status: TestRunStatus = None
-    pixelMisMatchCount: float = None
-    diffPercent: float = None
-    diffTollerancePercent: float = None
+    pixelMisMatchCount: typing.Optional[float] = None
+    diffPercent: typing.Optional[float] = None
+    diffTollerancePercent: typing.Optional[float] = None
 
 
 @dataclasses.dataclass
