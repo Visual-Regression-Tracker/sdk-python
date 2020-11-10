@@ -87,5 +87,23 @@ vrt.track(TestRun(
 
     # Optional
     device='PC',
+
+    # Array of areas to be ignored
+    ignoreAreas=[
+        IgnoreArea(
+            # X-coordinate relative of left upper corner
+            # Required
+            x=10,
+            # Y-coordinate relative of left upper corner
+            # Required
+            y=20,
+            # Area width in px
+            # Required
+            width=300,
+            # Height width in px
+            # Required
+            height=400
+        )
+    ],
 ))
 ```
