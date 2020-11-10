@@ -1,5 +1,7 @@
 import dataclasses
 import enum
+import typing
+import dacite
 
 
 @dataclasses.dataclass
@@ -12,6 +14,14 @@ class Config:
 
 
 @dataclasses.dataclass
+class IgnoreArea:
+    x: int = None
+    y: int = None
+    width: int = None
+    height: int  = None
+
+
+@dataclasses.dataclass
 class TestRun:
     name: str = None
     imageBase64: str = None
@@ -20,6 +30,7 @@ class TestRun:
     viewport: str = None
     device: str = None
     diffTollerancePercent: float = None
+    ignoreAreas: typing.List[IgnoreArea] = None
 
 
 @dataclasses.dataclass
@@ -38,14 +49,14 @@ class TestRunStatus(enum.Enum):
 class TestRunResponse:
     id: str = None
     imageName: str = None
-    diffName: str = None
-    baselineName: str = None
+    diffName: typing.Optional[str] = None
+    baselineName: typing.Optional[str] = None
     url: str = None
     merge: bool = False
     status: TestRunStatus = None
-    pixelMisMatchCount: float = None
-    diffPercent: float = None
-    diffTollerancePercent: float = None
+    pixelMisMatchCount: typing.Optional[float] = None
+    diffPercent: typing.Optional[float] = None
+    diffTollerancePercent: typing.Optional[float] = None
 
 
 @dataclasses.dataclass
@@ -69,16 +80,13 @@ class TestRunResult:
 
 
 def _to_dict(obj):
-    fields = dataclasses.fields(obj)
-    data = {}
-    for field in fields:
-        value = getattr(obj, field.name)
-        if value is not None:
-            data[field.name] = value
+    def dict_factory(key_values):
+        return dict(kv for kv in key_values if kv[1] is not None)
+
+    data = dataclasses.asdict(obj, dict_factory=dict_factory)
     return data
 
 
 def _from_dict(data, clazz):
-    fields = dataclasses.fields(clazz)
-    obj = clazz(*[data.get(field.name, None) for field in fields])
+    obj = dacite.from_dict(clazz, data)
     return obj
