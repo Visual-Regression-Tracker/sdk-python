@@ -30,6 +30,7 @@ class VisualRegressionTracker:
 
     def start(self):
         data = {
+            'ciBuildId': self.config.ciBuildId,
             'branchName': self.config.branchName,
             'project': self.config.project,
         }
