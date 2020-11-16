@@ -30,6 +30,9 @@ config = Config(
     # apiKey - User apiKey
     apiKey='tXZVHX0EA4YQM1MGDD',
 
+    # ciBuildId - Current git commit SHA
+    ciBuildId='commit_sha',
+
     # branch - Current git branch 
     branchName='develop',
 
