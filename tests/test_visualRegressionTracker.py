@@ -15,6 +15,7 @@ from visual_regression_tracker.visualRegressionTracker import \
 
 CONFIG = Config(
     apiUrl='http://localhost:4200',
+    ciBuildId='CI Build Id',
     branchName='develop',
     project='Default project',
     apiKey='CPKVK4JNK24NVNPNGVFQ853HXXEG',
@@ -136,7 +137,7 @@ def test__start__should_start_build(vrt, mock_request):
     mock_request.assert_called_once_with(
         f'{CONFIG.apiUrl}/builds',
         'post',
-        {'branchName': CONFIG.branchName, 'project': CONFIG.project},
+        {'ciBuildId': CONFIG.ciBuildId, 'branchName': CONFIG.branchName, 'project': CONFIG.project},
         {'apiKey': CONFIG.apiKey},
     )
 
