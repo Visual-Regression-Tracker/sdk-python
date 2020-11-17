@@ -1,0 +1,8 @@
+requests
+dacite
+importlib-metadata; python_version >= '3.7'
+dataclasses; python_version >= '3.6'
+pytest
+pytest-cov
+pytest-mock
+twine
