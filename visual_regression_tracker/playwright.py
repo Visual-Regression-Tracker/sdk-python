@@ -58,36 +58,18 @@ class ElementHandleTrackOptions:
   agent: Agent = None
 
 
-class PlaywrightVisualRegressionTracker:
-    def __init__(
-        self,
-        config: Config,
-        browser: BrowserType
-    ):
-        self.vrt = VisualRegressionTracker(config)
+class PlaywrightMixin:
+    def __init__(self, browser: BrowserType):
         self.browser = browser
 
-    def start(self):
-        self.vrt.start()
-
-    def stop(self):
-        self.vrt.stop()
-
-    def __enter__(self):
-        self.start()
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.stop()
-
-    def trackPage(self, page: Page, name: str, options: PageTrackOptions):
+    def trackPage(self, page: Page, name: str, options: PageTrackOptions = None):
         viewportSize = page.viewportSize()
         
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = page.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot)
 
-        self.vrt.track(TestRun(
+        self.track(TestRun(
             name,
             imageBase64,
             options.agent.os if options and options.agent else None,
@@ -98,12 +80,12 @@ class PlaywrightVisualRegressionTracker:
             options.ignoreAreas if options else None,
         ))
 
-    def trackElementHandle(self, elementHandle: ElementHandle, name: str, options: ElementHandleTrackOptions):
+    def trackElementHandle(self, elementHandle: ElementHandle, name: str, options: ElementHandleTrackOptions = None):
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = elementHandle.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot)
 
-        self.vrt.track(TestRun(
+        self.track(TestRun(
             name,
             imageBase64,
             options.agent.os if options and options.agent else None,
@@ -115,31 +97,7 @@ class PlaywrightVisualRegressionTracker:
         ))
 
 
-if __name__ == '__main__':
-
-    from playwright import sync_playwright
-    from visual_regression_tracker import Config, TestRun
-    from visual_regression_tracker.playwright import PlaywrightVisualRegressionTracker, PageTrackOptions
-
-    config = Config()
-
-    playwright = sync_playwright().start()
-    browserType = playwright.chromium
-
-    with PlaywrightVisualRegressionTracker(config, browserType) as vrt:
-        browser = browserType.launch(headless=False)
-        page = browser.newPage()
-        page.goto('https://www.python.org/')
-
-        imageName = 'Python Homepage'
-        options = PageTrackOptions(
-            screenshotOptions=PageScreenshotOptions(
-                path='/tmp/bob.png',
-            ),
-        )
-        vrt.trackPage(
-            page,
-            imageName,
-            options
-        )
-
+class PlaywrightVisualRegressionTracker(PlaywrightMixin, VisualRegressionTracker):
+    def __init__(self, config: Config, browser: BrowserType):
+        VisualRegressionTracker.__init__(self, config)
+        PlaywrightMixin.__init__(self, browser)
