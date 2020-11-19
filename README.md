@@ -6,10 +6,10 @@
 ## Install
 
 ```python
-pip install visual_regression_tracker
+pip install visual-regression-tracker
 
 # or, with playwright integration
-pip install visual_regression_tracker[playwright]
+pip install visual-regression-tracker[playwright]
 python -m playwright install
 ```
 
@@ -203,7 +203,7 @@ vrt.trackPage(page, imageName[, options])
     - `device: str`  device name, PC identifier, mobile identifier etc.
     - `viewport: str` viewport size.
 
-#### track element handle
+#### Track element handle
 ```python
 vrt.trackElementHandle(elementHandle, imageName[, options])
 ```
