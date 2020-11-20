@@ -1,6 +1,6 @@
 import pytest
-import sys
 import base64
+import binascii
 import visual_regression_tracker.types
 playwright = pytest.importorskip('playwright')
 import visual_regression_tracker.playwright
@@ -195,5 +195,5 @@ def is_base64(val):
     try:
         base64.b64decode(val)
         return True
-    except:
+    except binascii.Error:
         return False

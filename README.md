@@ -189,6 +189,7 @@ vrt.trackPage(page, imageName[, options])
     - `y: int`  Y-coordinate relative of left upper corner
     - `width: int`  area width in px
     - `height: int` area height in px
+  
   - `screenshotOptions: PageScreenshotOptions` configuration for Playwrights `screenshot` method
     - `fullPage: bool`  When true, takes a screenshot of the full scrollable page, instead of the currently visibvle viewport. Defaults to `false`.
     - `omitBackground: bool`  Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
@@ -197,7 +198,9 @@ vrt.trackPage(page, imageName[, options])
       - `y: float` y-coordinate of top-left corner of clip area
       - `width: float` width of clipping area
       - `height: float` height of clipping area
+
     - `timeout: float` Maximum time in milliseconds, defaults to 30 seconds, pass 0 to disable timeout.
+
   - `agent: Agent` Additional information to mark baseline across agents that have different:
     - `os: str`  operating system name, like Windows, Mac, etc.
     - `device: str`  device name, PC identifier, mobile identifier etc.
@@ -217,16 +220,12 @@ vrt.trackElementHandle(elementHandle, imageName[, options])
     - `y: int`  Y-coordinate relative of left upper corner
     - `width: int`  area width in px
     - `height: int` area height in px
+
   - `screenshotOptions: ElementHandleScreenshotOptions` configuration for Playwrights `screenshot` method
     - `omitBackground: bool`  Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
     - `timeout: float` Maximum time in milliseconds, defaults to 30 seconds, pass 0 to disable timeout.
+
   - `agent: Agent` Additional information to mark baseline across agents that have different:
     - `os: str`  operating system name, like Windows, Mac, etc.
     - `device: str`  device name, PC identifier, mobile identifier etc.
     - `viewport: str` viewport size.
-
-
-
-
-
-

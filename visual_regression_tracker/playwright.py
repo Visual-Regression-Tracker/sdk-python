@@ -2,7 +2,6 @@
 import base64
 import dataclasses
 import pathlib
-import sys
 
 from typing import Union, List
 from playwright.page import Page, Literal
@@ -60,11 +59,12 @@ class ElementHandleTrackOptions:
 
 class PlaywrightMixin:
     def __init__(self, browser: BrowserType):
+        """Initialise the playwright mixin."""
         self.browser = browser
 
     def trackPage(self, page: Page, name: str, options: PageTrackOptions = None):
         viewportSize = page.viewportSize()
-        
+
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = page.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot)
@@ -99,5 +99,11 @@ class PlaywrightMixin:
 
 class PlaywrightVisualRegressionTracker(PlaywrightMixin, VisualRegressionTracker):
     def __init__(self, config: Config, browser: BrowserType):
+        """
+        Creates a new PlaywrightVisualRegressionTracker.
+        
+        :param config: The config to use.
+        :param browser: the browser type being used by Playwright.
+        """
         VisualRegressionTracker.__init__(self, config)
         PlaywrightMixin.__init__(self, browser)
