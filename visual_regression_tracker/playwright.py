@@ -99,7 +99,8 @@ class PlaywrightMixin:
 
 class PlaywrightVisualRegressionTracker(PlaywrightMixin, VisualRegressionTracker):
     def __init__(self, config: Config, browser: BrowserType):
-        """Creates a new PlaywrightVisualRegressionTracker
+        """
+        Creates a new PlaywrightVisualRegressionTracker
 
         :param config: The config to use.
         :param browser: the browser type being used by Playwright.

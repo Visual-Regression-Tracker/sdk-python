@@ -224,6 +224,7 @@ vrt.trackElementHandle(elementHandle, imageName[, options])
 
 - `options: ElementHandleTrackOptions` optional configuration with:
   - `diffTollerancePercent: float` specify acceptable difference from baseline, between `0-100`.
+
   - `ignoreAreas: List[IgnoreArea]` 
     - `x: int`  X-coordinate relative of left upper corner
     - `y: int`  Y-coordinate relative of left upper corner
@@ -231,7 +232,9 @@ vrt.trackElementHandle(elementHandle, imageName[, options])
     - `height: int` area height in px
 
   - `screenshotOptions: ElementHandleScreenshotOptions` configuration for Playwrights `screenshot` method
+
     - `omitBackground: bool`  Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
+
     - `timeout: float` Maximum time in milliseconds, defaults to 30 seconds, pass 0 to disable timeout.
 
   - `agent: Agent` Additional information to mark baseline across agents that have different:
