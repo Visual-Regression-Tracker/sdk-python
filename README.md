@@ -116,7 +116,8 @@ vrt.track(TestRun(
 ```
 
 ### Integration with Microsoft Playwright
-#### Import
+
+#### Imports
 ```python
 from playwright import sync_playwright
 from visual_regression_tracker import Config, TestRun
@@ -181,9 +182,12 @@ vrt.trackPage(page, imageName[, options])
 ```
 
 - `page: Page` [Playwright page](https://microsoft.github.io/playwright-python/sync_api.html#playwright.sync_api.Page)
+
 - `imageName: str` name for the taken screenshot image
+
 - `options: PageTrackOptions` optional configuration with:
   - `diffTollerancePercent: float` specify acceptable difference from baseline, between `0-100`.
+
   - `ignoreAreas: List[IgnoreArea]` 
     - `x: int`  X-coordinate relative of left upper corner
     - `y: int`  Y-coordinate relative of left upper corner
@@ -192,8 +196,11 @@ vrt.trackPage(page, imageName[, options])
   
   - `screenshotOptions: PageScreenshotOptions` configuration for Playwrights `screenshot` method
     - `fullPage: bool`  When true, takes a screenshot of the full scrollable page, instead of the currently visibvle viewport. Defaults to `false`.
+
     - `omitBackground: bool`  Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
+
     - `clip: FloatRect` An object which specifies clipping of the resulting image. Should have the following fields:
+
       - `x: float` x-coordinate of top-left corner of clip area
       - `y: float` y-coordinate of top-left corner of clip area
       - `width: float` width of clipping area
@@ -212,6 +219,7 @@ vrt.trackElementHandle(elementHandle, imageName[, options])
 ```
 
 - `elementHandle: ElementHandle` [Playwright ElementHandle](https://microsoft.github.io/playwright-python/sync_api.html#playwright.sync_api.ElementHandle)
+
 - `imageName: str` name for the taken screenshot image
 - `options: ElementHandleTrackOptions` optional configuration with:
   - `diffTollerancePercent: float` specify acceptable difference from baseline, between `0-100`.
