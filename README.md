@@ -193,7 +193,7 @@ vrt.trackPage(page, imageName[, options])
     - `y: int`  Y-coordinate relative of left upper corner
     - `width: int`  area width in px
     - `height: int` area height in px
-  
+
   - `screenshotOptions: PageScreenshotOptions` configuration for Playwrights `screenshot` method
     - `fullPage: bool`  When true, takes a screenshot of the full scrollable page, instead of the currently visibvle viewport. Defaults to `false`.
 
@@ -221,6 +221,7 @@ vrt.trackElementHandle(elementHandle, imageName[, options])
 - `elementHandle: ElementHandle` [Playwright ElementHandle](https://microsoft.github.io/playwright-python/sync_api.html#playwright.sync_api.ElementHandle)
 
 - `imageName: str` name for the taken screenshot image
+
 - `options: ElementHandleTrackOptions` optional configuration with:
   - `diffTollerancePercent: float` specify acceptable difference from baseline, between `0-100`.
   - `ignoreAreas: List[IgnoreArea]` 
