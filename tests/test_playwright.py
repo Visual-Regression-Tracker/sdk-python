@@ -45,9 +45,9 @@ def sync_elementHandle(sync_page):
 
 @pytest.fixture
 def pvrt(sync_browserType, mocker):
-    mocker.patch('visual_regression_tracker.VisualRegressionTracker.start')
-    mocker.patch('visual_regression_tracker.VisualRegressionTracker.track')
-    mocker.patch('visual_regression_tracker.VisualRegressionTracker.stop')
+    mocker.patch.object(visual_regression_tracker.VisualRegressionTracker, 'start')
+    mocker.patch.object(visual_regression_tracker.VisualRegressionTracker, 'track')
+    mocker.patch.object(visual_regression_tracker.VisualRegressionTracker, 'stop')
     pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(CONFIG, sync_browserType)
     return pvrt
 
@@ -55,6 +55,11 @@ def pvrt(sync_browserType, mocker):
 def test_pvrt_extends_vrt(sync_browserType):
     pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(CONFIG, sync_browserType)
     assert isinstance(pvrt, visual_regression_tracker.VisualRegressionTracker)
+
+
+def test_pvrt_extends_mixin(sync_browserType):
+    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(CONFIG, sync_browserType)
+    assert isinstance(pvrt, visual_regression_tracker.playwright.PlaywrightMixin)
 
 
 def test_pvrt_init_saves_parameters(pvrt, sync_browserType):
