@@ -4,10 +4,9 @@ import dataclasses
 import pathlib
 
 from typing import Union, List
-from playwright.page import Page, Literal
-from playwright.browser_type import BrowserType
-from playwright.element_handle import ElementHandle
-from playwright.helper import FloatRect
+from playwright.sync_api import Literal, FloatRect
+from playwright import sync_api
+from playwright import async_api
 from visual_regression_tracker.types import \
     _to_dict, Config, IgnoreArea, TestRun
 from visual_regression_tracker.visualRegressionTracker import \
@@ -58,13 +57,17 @@ class ElementHandleTrackOptions:
 
 
 class PlaywrightMixin:
-    def __init__(self, browser: BrowserType):
+    def __init__(self, browser: Union[sync_api.BrowserType, async_api.BrowserType]):
         """Initialise the playwright mixin."""
         self.browser = browser
 
-    def trackPage(self, page: Page, name: str, options: PageTrackOptions = None):
+    def trackPage(
+        self,
+        page: sync_api.Page,
+        name: str,
+        options: PageTrackOptions = None
+    ):
         viewportSize = page.viewportSize()
-
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = page.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot)
@@ -80,7 +83,35 @@ class PlaywrightMixin:
             options.ignoreAreas if options else None,
         ))
 
-    def trackElementHandle(self, elementHandle: ElementHandle, name: str, options: ElementHandleTrackOptions = None):
+    async def trackPageAsync(
+        self,
+        page: async_api.Page,
+        name: str,
+        options: PageTrackOptions = None
+    ):
+        viewportSize = page.viewportSize()
+
+        screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
+        screenshot = await page.screenshot(**screenshotOptions)
+        imageBase64 = base64.b64encode(screenshot)
+
+        self.track(TestRun(
+            name,
+            imageBase64,
+            options.agent.os if options and options.agent else None,
+            self.browser.name,
+            f'{viewportSize["width"]}x{viewportSize["height"]}' if viewportSize else None,
+            options.agent.device if options and options.agent else None,
+            options.diffTollerancePercent if options else None,
+            options.ignoreAreas if options else None,
+        ))
+
+    def trackElementHandle(
+        self,
+        elementHandle: sync_api.ElementHandle,
+        name: str,
+        options: ElementHandleTrackOptions = None
+    ):
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = elementHandle.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot)
@@ -96,9 +127,30 @@ class PlaywrightMixin:
             options.ignoreAreas if options else None,
         ))
 
+    async def trackElementHandleAsync(
+        self,
+        elementHandle: async_api.ElementHandle,
+        name: str,
+        options: ElementHandleTrackOptions = None
+    ):
+        screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
+        screenshot = await elementHandle.screenshot(**screenshotOptions)
+        imageBase64 = base64.b64encode(screenshot)
+
+        self.track(TestRun(
+            name,
+            imageBase64,
+            options.agent.os if options and options.agent else None,
+            self.browser.name,
+            options.agent.viewport if options and options.agent else None,
+            options.agent.device if options and options.agent else None,
+            options.diffTollerancePercent if options else None,
+            options.ignoreAreas if options else None,
+        ))
+
 
 class PlaywrightVisualRegressionTracker(PlaywrightMixin, VisualRegressionTracker):
-    def __init__(self, config: Config, browser: BrowserType):
+    def __init__(self, config: Config, browser: Union[sync_api.BrowserType, async_api.BrowserType]):
         """
         Creates a new PlaywrightVisualRegressionTracker
 

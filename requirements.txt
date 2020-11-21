@@ -6,4 +6,7 @@ dataclasses; python_version >= '3.6'
 pytest
 pytest-cov
 pytest-mock
+pytest-asyncio
 twine
+pylint
+nest_asyncio
