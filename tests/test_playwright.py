@@ -361,6 +361,7 @@ async def test_pvrt_trackElementHandleAsync(pvrt, async_elementHandle, async_bro
 
 def is_base64(val):
     try:
+        assert isinstance(val, str)
         base64.b64decode(val)
         return True
     except binascii.Error:

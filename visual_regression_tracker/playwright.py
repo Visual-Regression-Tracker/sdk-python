@@ -70,7 +70,7 @@ class PlaywrightMixin:
         viewportSize = page.viewportSize()
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = page.screenshot(**screenshotOptions)
-        imageBase64 = base64.b64encode(screenshot)
+        imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
         self.track(TestRun(
             name,
@@ -93,7 +93,7 @@ class PlaywrightMixin:
 
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = await page.screenshot(**screenshotOptions)
-        imageBase64 = base64.b64encode(screenshot)
+        imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
         self.track(TestRun(
             name,
@@ -114,7 +114,7 @@ class PlaywrightMixin:
     ):
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = elementHandle.screenshot(**screenshotOptions)
-        imageBase64 = base64.b64encode(screenshot)
+        imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
         self.track(TestRun(
             name,
@@ -135,7 +135,7 @@ class PlaywrightMixin:
     ):
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = await elementHandle.screenshot(**screenshotOptions)
-        imageBase64 = base64.b64encode(screenshot)
+        imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
         self.track(TestRun(
             name,
