@@ -6,7 +6,11 @@
 ## Install
 
 ```python
-pip install visual_regression_tracker
+pip install visual-regression-tracker
+
+# or, with playwright integration
+pip install visual-regression-tracker[playwright]
+python -m playwright install
 ```
 
 ## Usage
@@ -110,3 +114,130 @@ vrt.track(TestRun(
     ],
 ))
 ```
+
+### Integration with Microsoft Playwright
+
+#### Imports
+```python
+from playwright import sync_playwright
+from visual_regression_tracker import Config, TestRun
+from visual_regression_tracker.p import PlaywrightVisualRegressionTracker
+```
+
+#### Start playwright and navigate to page
+```python
+playwright = sync_playwright().start()
+browserType = playwright.chromium
+browser = browserType.launch(headless=False)
+page = browser.newPage()
+page.goto('https://www.python.org/')
+```
+
+#### Configure connection to VRT server
+```python
+config = Config(
+    # apiUrl - URL where backend is running 
+    apiUrl='http://localhost:4200',
+
+    # project - Project name or ID
+    project='Default project',
+
+    # apiKey - User apiKey
+    apiKey='tXZVHX0EA4YQM1MGDD',
+
+    # ciBuildId - Current git commit SHA
+    ciBuildId='commit_sha',
+
+    # branch - Current git branch 
+    branchName='develop',
+
+    # enableSoftAssert - Log errors instead of exceptions
+    enableSoftAssert=False,
+)
+vrt = PlaywrightVisualRegressionTracker(config, browserType)
+```
+
+#### Setup / Tear down
+
+As context manager:
+```python
+with vrt:
+    ...
+    # track test runs
+    ...
+```
+
+Without context manager:
+```python
+vrt.start()
+...
+# track test runs
+...
+vrt.stop()
+```
+
+#### Track page
+```python
+vrt.trackPage(page, imageName[, options])
+```
+
+- `page: Page` [Playwright page](https://microsoft.github.io/playwright-python/sync_api.html#playwright.sync_api.Page)
+
+- `imageName: str` name for the taken screenshot image
+
+- `options: PageTrackOptions` optional configuration with:
+  - `diffTollerancePercent: float` specify acceptable difference from baseline, between `0-100`.
+
+  - `ignoreAreas: List[IgnoreArea]` 
+    - `x: int`  X-coordinate relative of left upper corner
+    - `y: int`  Y-coordinate relative of left upper corner
+    - `width: int`  area width in px
+    - `height: int` area height in px
+
+  - `screenshotOptions: PageScreenshotOptions` configuration for Playwrights `screenshot` method
+    - `fullPage: bool`  When true, takes a screenshot of the full scrollable page, instead of the currently visibvle viewport. Defaults to `false`.
+
+    - `omitBackground: bool`  Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
+
+    - `clip: FloatRect` An object which specifies clipping of the resulting image. Should have the following fields:
+
+      - `x: float` x-coordinate of top-left corner of clip area
+      - `y: float` y-coordinate of top-left corner of clip area
+      - `width: float` width of clipping area
+      - `height: float` height of clipping area
+
+    - `timeout: float` Maximum time in milliseconds, defaults to 30 seconds, pass 0 to disable timeout.
+
+  - `agent: Agent` Additional information to mark baseline across agents that have different:
+    - `os: str`  operating system name, like Windows, Mac, etc.
+    - `device: str`  device name, PC identifier, mobile identifier etc.
+    - `viewport: str` viewport size.
+
+#### Track element handle
+```python
+vrt.trackElementHandle(elementHandle, imageName[, options])
+```
+
+- `elementHandle: ElementHandle` [Playwright ElementHandle](https://microsoft.github.io/playwright-python/sync_api.html#playwright.sync_api.ElementHandle)
+
+- `imageName: str` name for the taken screenshot image
+
+- `options: ElementHandleTrackOptions` optional configuration with:
+  - `diffTollerancePercent: float` specify acceptable difference from baseline, between `0-100`.
+
+  - `ignoreAreas: List[IgnoreArea]` 
+    - `x: int`  X-coordinate relative of left upper corner
+    - `y: int`  Y-coordinate relative of left upper corner
+    - `width: int`  area width in px
+    - `height: int` area height in px
+
+  - `screenshotOptions: ElementHandleScreenshotOptions` configuration for Playwrights `screenshot` method
+
+    - `omitBackground: bool`  Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
+
+    - `timeout: float` Maximum time in milliseconds, defaults to 30 seconds, pass 0 to disable timeout.
+
+  - `agent: Agent` Additional information to mark baseline across agents that have different:
+    - `os: str`  operating system name, like Windows, Mac, etc.
+    - `device: str`  device name, PC identifier, mobile identifier etc.
+    - `viewport: str` viewport size.

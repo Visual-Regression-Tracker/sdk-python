@@ -1,8 +1,13 @@
 requests
 dacite
-importlib-metadata; python_version >= '3.7'
-dataclasses; python_version >= '3.6'
+playwright; python_version >= '3.7'
+importlib-metadata; python_version <= '3.7'
+dataclasses; python_version <= '3.6'
+greenlet; python_version <= '3.6'
 pytest
 pytest-cov
 pytest-mock
+pytest-asyncio
 twine
+pylint
+nest_asyncio
