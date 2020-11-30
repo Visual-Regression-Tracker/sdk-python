@@ -6,8 +6,7 @@ import subprocess
 import sys
 
 from visual_regression_tracker import Config, MissingConfigurationError
-from visual_regression_tracker.config import \
-    determine_config_path, REQUIRED_PROPERTIES, ENV_MAPPING
+from visual_regression_tracker.config import determine_config_path, ENV_MAPPING
 
 
 @pytest.fixture

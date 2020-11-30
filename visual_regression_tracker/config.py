@@ -4,7 +4,7 @@ import os
 import os.path
 import json
 import pathlib
-import sys 
+import sys
 
 from .exceptions import MissingConfigurationError
 from .types import _from_dict
@@ -79,7 +79,7 @@ class Config:
     def check_complete(self):
         for field_name in REQUIRED_PROPERTIES:
             if getattr(self, field_name) is None:
-                raise MissingConfigurationError(field_name, f'{field_name} is not specified.') 
+                raise MissingConfigurationError(field_name, f'{field_name} is not specified.')
 
 
 def determine_config_path():
@@ -91,6 +91,6 @@ def determine_config_path():
     """
     main_module = sys.modules['__main__'].__dict__
     is_script = '__file__' in main_module and main_module['__spec__'] is None
-    dir = os.path.dirname(main_module['__file__']) if is_script else os.curdir
-    abs_dir = os.path.abspath(dir)
+    rel_dir = os.path.dirname(main_module['__file__']) if is_script else os.curdir
+    abs_dir = os.path.abspath(rel_dir)
     return abs_dir
