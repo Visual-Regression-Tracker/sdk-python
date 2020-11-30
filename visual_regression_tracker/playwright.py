@@ -7,10 +7,9 @@ from typing import Union, List
 from playwright.sync_api import Literal, FloatRect
 from playwright import sync_api
 from playwright import async_api
-from visual_regression_tracker.types import \
-    _to_dict, Config, IgnoreArea, TestRun
-from visual_regression_tracker.visualRegressionTracker import \
-    VisualRegressionTracker
+from visual_regression_tracker import \
+    Config, IgnoreArea, TestRun, VisualRegressionTracker
+from visual_regression_tracker.types import _to_dict
 
 
 @dataclasses.dataclass
@@ -150,7 +149,7 @@ class PlaywrightMixin:
 
 
 class PlaywrightVisualRegressionTracker(PlaywrightMixin, VisualRegressionTracker):
-    def __init__(self, config: Config, browser: Union[sync_api.BrowserType, async_api.BrowserType]):
+    def __init__(self, browser: Union[sync_api.BrowserType, async_api.BrowserType], config: Config = None):
         """
         Creates a new PlaywrightVisualRegressionTracker
 

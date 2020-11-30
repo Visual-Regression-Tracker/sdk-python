@@ -19,12 +19,13 @@ Basic usage:
         ))
 """
 
-from .types import Config, Build, IgnoreArea, TestRun, TestRunResponse, TestRunStatus
-from .exceptions import VisualRegressionTrackerError, ServerError, TestRunError
+from .types import Build, IgnoreArea, TestRun, TestRunResponse, TestRunStatus
+from .exceptions import VisualRegressionTrackerError, ServerError, TestRunError, MissingConfigurationError
+from .config import Config
 from .visualRegressionTracker import VisualRegressionTracker
 
 __all__ = [
     'Config', 'Build', 'IgnoreArea', 'TestRun', 'TestRunResponse', 'TestRunStatus',
-    'VisualRegressionTrackerError', 'ServerError', 'TestRunError',
+    'VisualRegressionTrackerError', 'ServerError', 'TestRunError', 'MissingConfigurationError',
     'VisualRegressionTracker',
 ]

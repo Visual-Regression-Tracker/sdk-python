@@ -5,16 +5,6 @@ import dacite
 
 
 @dataclasses.dataclass
-class Config:
-    apiUrl: str = 'http://localhost:4200'
-    ciBuildId: str = None
-    branchName: str = None
-    project: str = None
-    apiKey: str = None
-    enableSoftAssert: bool = False
-
-
-@dataclasses.dataclass
 class IgnoreArea:
     x: int = None
     y: int = None

@@ -2,12 +2,12 @@ import asyncio
 import pytest
 import base64
 import binascii
-import visual_regression_tracker.types
+import visual_regression_tracker
 playwright = pytest.importorskip('playwright')
 import visual_regression_tracker.playwright
 
 
-CONFIG = visual_regression_tracker.types.Config(
+CONFIG = visual_regression_tracker.Config(
     apiUrl='https://server/',
     ciBuildId='CI Build Id',
     branchName='Branch Name',
@@ -22,17 +22,17 @@ def pvrt(sync_browserType, mocker):
     mocker.patch.object(visual_regression_tracker.VisualRegressionTracker, 'start')
     mocker.patch.object(visual_regression_tracker.VisualRegressionTracker, 'track')
     mocker.patch.object(visual_regression_tracker.VisualRegressionTracker, 'stop')
-    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(CONFIG, sync_browserType)
+    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(sync_browserType, CONFIG)
     return pvrt
 
 
 def test_pvrt_extends_vrt(sync_browserType):
-    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(CONFIG, sync_browserType)
+    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(sync_browserType, CONFIG)
     assert isinstance(pvrt, visual_regression_tracker.VisualRegressionTracker)
 
 
 def test_pvrt_extends_mixin(sync_browserType):
-    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(CONFIG, sync_browserType)
+    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(sync_browserType, CONFIG)
     assert isinstance(pvrt, visual_regression_tracker.playwright.PlaywrightMixin)
 
 
