@@ -53,7 +53,7 @@ class Config:
             raise MissingConfigurationError(
                 e.field,
                 f'Incomplete configuration, {e.field} was not specified.',
-                'Please provide via the contstructor, a config file "vrt.json", or environment variables.'
+                'Please provide via the constructor, a config file "vrt.json", or environment variables.'
             )
 
         return cfg
@@ -65,10 +65,19 @@ class Config:
         return cfg
 
     def apply_environment(self, environment: dict = None):
+        fields = {f.name:f.type for f in dataclasses.fields(self)}
         for field_name, env_name in ENV_MAPPING.items():
             val = environment.get(env_name, None)
-            if val is not None:
-                setattr(self, field_name, val)
+            field_type = fields[field_name]
+            if val is None:
+                continue
+            if field_type is str:
+                pass
+            elif field_type is bool:
+                val = val.lower() in ('true', '1')
+            else:
+                raise Exception('Unsupported type')
+            setattr(self, field_name, val)
 
     @staticmethod
     def from_environment(environment: dict = None):

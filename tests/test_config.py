@@ -31,7 +31,7 @@ def config_env():
         'VRT_BRANCHNAME': 'env branch name',
         'VRT_PROJECT': 'env project',
         'VRT_APIKEY': 'env api key',
-        'VRT_ENABLESOFTASSERT': False,
+        'VRT_ENABLESOFTASSERT': 'False',
     }
     yield env
 

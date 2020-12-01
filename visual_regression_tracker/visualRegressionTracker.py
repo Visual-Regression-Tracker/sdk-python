@@ -25,7 +25,6 @@ class VisualRegressionTracker:
         """
         self.config = config or Config.default()
         self.headers = {'apiKey': self.config.apiKey}
-        print(self.config, config)
         self.config.check_complete()
 
     def _isStarted(self):

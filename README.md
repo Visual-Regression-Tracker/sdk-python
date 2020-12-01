@@ -51,12 +51,12 @@ vrt = VisualRegressionTracker(config)
 #### Or, as JSON config file `vrt.json`
 ```json
 {
-    "apiUrl"="http://localhost:4200",
-    "project"="Default project",
-    "apiKey"="tXZVHX0EA4YQM1MGDD",
-    "ciBuildId"="commit_sha",
-    "branchName"="develop",
-    "enableSoftAssert"=false
+    "apiUrl":"http://localhost:4200",
+    "project":"Default project",
+    "apiKey":"tXZVHX0EA4YQM1MGDD",
+    "ciBuildId":"commit_sha",
+    "branchName":"develop",
+    "enableSoftAssert":false
 }
 ```
 ```python
