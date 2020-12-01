@@ -70,7 +70,7 @@ VRT_PROJECT="Default project" \
 VRT_APIKEY="tXZVHX0EA4YQM1MGDD" \
 VRT_CIBUILDID="commit_sha" \
 VRT_BRANCHNAME="develop" \
-VRT_ENABLESOFTASSERT=1 \
+VRT_ENABLESOFTASSERT=true \
     python
 ```
 ```python
