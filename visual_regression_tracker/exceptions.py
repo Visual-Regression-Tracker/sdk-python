@@ -22,3 +22,11 @@ class TestRunError(VisualRegressionTrackerError):
         """Initialises TestRunError error."""
         self.status = status
         super(TestRunError, self).__init__(*args, status)
+
+
+class MissingConfigurationError(VisualRegressionTrackerError):
+    """VRT Configuration is incomplete."""
+
+    def __init__(self, field, *args):
+        self.field = field
+        super(MissingConfigurationError, self).__init__(*args, field)

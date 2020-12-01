@@ -23,6 +23,7 @@ from visual_regression_tracker import VisualRegressionTracker, Config, TestRun
 
 ### Configure connection
 
+#### As python
 ```python
 config = Config(
     # apiUrl - URL where backend is running 
@@ -45,6 +46,35 @@ config = Config(
 )
 
 vrt = VisualRegressionTracker(config)
+```
+
+#### Or, as JSON config file `vrt.json`
+```json
+{
+    "apiUrl":"http://localhost:4200",
+    "project":"Default project",
+    "apiKey":"tXZVHX0EA4YQM1MGDD",
+    "ciBuildId":"commit_sha",
+    "branchName":"develop",
+    "enableSoftAssert":false
+}
+```
+```python
+vrt = VisualRegressionTracker()
+```
+
+#### Or, as environment variables
+```sh
+VRT_APIURL="http://localhost:4200" \
+VRT_PROJECT="Default project" \
+VRT_APIKEY="tXZVHX0EA4YQM1MGDD" \
+VRT_CIBUILDID="commit_sha" \
+VRT_BRANCHNAME="develop" \
+VRT_ENABLESOFTASSERT=true \
+    python
+```
+```python
+vrt = VisualRegressionTracker()
 ```
 
 ### Setup / Teardown
@@ -135,26 +165,7 @@ page.goto('https://www.python.org/')
 
 #### Configure connection to VRT server
 ```python
-config = Config(
-    # apiUrl - URL where backend is running 
-    apiUrl='http://localhost:4200',
-
-    # project - Project name or ID
-    project='Default project',
-
-    # apiKey - User apiKey
-    apiKey='tXZVHX0EA4YQM1MGDD',
-
-    # ciBuildId - Current git commit SHA
-    ciBuildId='commit_sha',
-
-    # branch - Current git branch 
-    branchName='develop',
-
-    # enableSoftAssert - Log errors instead of exceptions
-    enableSoftAssert=False,
-)
-vrt = PlaywrightVisualRegressionTracker(config, browserType)
+vrt = PlaywrightVisualRegressionTracker(browserType, config)
 ```
 
 #### Setup / Tear down

@@ -4,10 +4,11 @@ import logging
 import requests
 
 from .types import \
-    Config, Build, TestRun, TestRunResponse, TestRunStatus, \
+    Build, TestRun, TestRunResponse, TestRunStatus, \
     _to_dict, _from_dict, TestRunResult
 from .exceptions import \
     ServerError, TestRunError, VisualRegressionTrackerError
+from .config import Config
 
 
 class VisualRegressionTracker:
@@ -16,14 +17,15 @@ class VisualRegressionTracker:
     projectId: str = None
     headers: dict = None
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config = None):
         """
         Creates a new VisualRegressionTracker
 
         :param config: The configuration to use.
         """
-        self.config = config
+        self.config = config or Config.default()
         self.headers = {'apiKey': self.config.apiKey}
+        self.config.check_complete()
 
     def _isStarted(self):
         return self.buildId is not None and self.projectId is not None
