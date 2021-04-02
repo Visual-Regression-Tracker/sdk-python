@@ -3,9 +3,8 @@ import pytest
 import base64
 import binascii
 import visual_regression_tracker
-playwright = pytest.importorskip('playwright')
 import visual_regression_tracker.playwright
-
+playwright = pytest.importorskip('playwright')
 
 CONFIG = visual_regression_tracker.Config(
     apiUrl='https://server/',
@@ -234,7 +233,7 @@ async def async_elementHandle(async_page):
 @pytest.mark.asyncio
 async def test_pvrt_trackPageAsync__throws_if_no_page(pvrt):
     with pytest.raises(Exception):
-       await pvrt.trackPageAsync(None, 'name')
+        await pvrt.trackPageAsync(None, 'name')
 
 
 @pytest.mark.asyncio
@@ -356,7 +355,6 @@ async def test_pvrt_trackElementHandleAsync(pvrt, async_elementHandle, async_bro
     assert testRun.ignoreAreas == [
         visual_regression_tracker.types.IgnoreArea(1, 2, 3, 4),
     ]
-
 
 
 def is_base64(val):
