@@ -206,9 +206,9 @@ vrt.trackPage(page, imageName[, options])
     - `height: int` area height in px
 
   - `screenshotOptions: PageScreenshotOptions` configuration for Playwrights `screenshot` method
-    - `fullPage: bool`  When true, takes a screenshot of the full scrollable page, instead of the currently visibvle viewport. Defaults to `false`.
+    - `full_page: bool`  When true, takes a screenshot of the full scrollable page, instead of the currently visibvle viewport. Defaults to `false`.
 
-    - `omitBackground: bool`  Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
+    - `omit_background: bool`  Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
 
     - `clip: FloatRect` An object which specifies clipping of the resulting image. Should have the following fields:
 
@@ -244,7 +244,7 @@ vrt.trackElementHandle(elementHandle, imageName[, options])
 
   - `screenshotOptions: ElementHandleScreenshotOptions` configuration for Playwrights `screenshot` method
 
-    - `omitBackground: bool`  Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
+    - `omit_background: bool`  Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
 
     - `timeout: float` Maximum time in milliseconds, defaults to 30 seconds, pass 0 to disable timeout.
 
