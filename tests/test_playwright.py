@@ -3,8 +3,8 @@ import pytest
 import base64
 import binascii
 import visual_regression_tracker
-import visual_regression_tracker.playwright
 playwright = pytest.importorskip('playwright')
+import visual_regression_tracker.playwright
 
 CONFIG = visual_regression_tracker.Config(
     apiUrl='https://server/',
