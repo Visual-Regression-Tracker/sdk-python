@@ -2,7 +2,8 @@ import base64
 import dataclasses
 import pathlib
 
-from typing import Union, List, Literal
+from typing import Union, List
+from typing_extensions import Literal
 from playwright.sync_api import FloatRect
 from playwright import sync_api
 from playwright import async_api
