@@ -6,7 +6,6 @@ import visual_regression_tracker
 playwright = pytest.importorskip('playwright')
 import visual_regression_tracker.playwright
 
-
 CONFIG = visual_regression_tracker.Config(
     apiUrl='https://server/',
     ciBuildId='CI Build Id',
@@ -56,7 +55,7 @@ def test_pvrt_trackPage__throws_if_no_page(pvrt):
 
 @pytest.fixture(scope='session')
 def sync_playwright():
-    with playwright.sync_playwright() as p:
+    with playwright.sync_api.sync_playwright() as p:
         yield p
 
 
@@ -69,8 +68,8 @@ def sync_browserType(sync_playwright):
 def sync_page(sync_browserType):
     browser = sync_browserType.launch(headless=True)
     try:
-        page = browser.newPage()
-        page.setViewportSize(1024, 768)
+        page = browser.new_page()
+        page.set_viewport_size({"width": 1024, "height": 768})
         page.goto('https://google.com')
         yield page
     finally:
@@ -107,8 +106,8 @@ def test_pvrt_trackPage(pvrt, sync_page, sync_browserType):
                 type='jpeg',
                 path=None,
                 quality=100,
-                omitBackground=False,
-                fullPage=True,
+                omit_background=False,
+                full_page=True,
             ),
             agent=visual_regression_tracker.playwright.Agent(
                 os='os',
@@ -168,7 +167,7 @@ def test_pvrt_trackElementHandle(pvrt, sync_elementHandle, sync_browserType):
                 type='jpeg',
                 path=None,
                 quality=100,
-                omitBackground=False,
+                omit_background=False,
             ),
             agent=visual_regression_tracker.playwright.Agent(
                 os='os',
@@ -195,17 +194,19 @@ def test_pvrt_trackElementHandle(pvrt, sync_elementHandle, sync_browserType):
 
 @pytest.fixture
 def sync_elementHandle(sync_page):
-    return sync_page.querySelector('form')
+    return sync_page.query_selector('form')
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def event_loop():
-    yield asyncio.get_event_loop()
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope='session')
 async def async_playwright():
-    async with playwright.async_playwright() as p:
+    async with playwright.async_api.async_playwright() as p:
         yield p
 
 
@@ -218,8 +219,8 @@ async def async_browserType(async_playwright):
 async def async_page(async_browserType):
     browser = await async_browserType.launch(headless=True)
     try:
-        page = await browser.newPage()
-        await page.setViewportSize(1024, 768)
+        page = await browser.new_page()
+        await page.set_viewport_size({"width": 1024, "height": 768})
         await page.goto('https://google.com')
         yield page
     finally:
@@ -228,13 +229,13 @@ async def async_page(async_browserType):
 
 @pytest.fixture
 async def async_elementHandle(async_page):
-    return await async_page.querySelector('form')
+    return await async_page.query_selector('form')
 
 
 @pytest.mark.asyncio
 async def test_pvrt_trackPageAsync__throws_if_no_page(pvrt):
     with pytest.raises(Exception):
-       await pvrt.trackPageAsync(None, 'name')
+        await pvrt.trackPageAsync(None, 'name')
 
 
 @pytest.mark.asyncio
@@ -269,8 +270,8 @@ async def test_pvrt_trackPageAsync(pvrt, async_page, async_browserType):
                 type='jpeg',
                 path=None,
                 quality=100,
-                omitBackground=False,
-                fullPage=True,
+                omit_background=False,
+                full_page=True,
             ),
             agent=visual_regression_tracker.playwright.Agent(
                 os='os',
@@ -333,7 +334,7 @@ async def test_pvrt_trackElementHandleAsync(pvrt, async_elementHandle, async_bro
                 type='jpeg',
                 path=None,
                 quality=100,
-                omitBackground=False,
+                omit_background=False,
             ),
             agent=visual_regression_tracker.playwright.Agent(
                 os='os',
@@ -356,7 +357,6 @@ async def test_pvrt_trackElementHandleAsync(pvrt, async_elementHandle, async_bro
     assert testRun.ignoreAreas == [
         visual_regression_tracker.types.IgnoreArea(1, 2, 3, 4),
     ]
-
 
 
 def is_base64(val):

@@ -1,10 +1,10 @@
-
 import base64
 import dataclasses
 import pathlib
 
 from typing import Union, List
-from playwright.sync_api import Literal, FloatRect
+from typing_extensions import Literal
+from playwright.sync_api import FloatRect
 from playwright import sync_api
 from playwright import async_api
 from visual_regression_tracker import \
@@ -14,28 +14,9 @@ from visual_regression_tracker.types import _to_dict
 
 @dataclasses.dataclass
 class Agent:
-  os: str = None
-  device: str = None
-  viewport: str = None
-
-
-@dataclasses.dataclass
-class PageScreenshotOptions:
-    timeout: int = None
-    type: Literal["jpeg", "png"] = None
-    path: Union[str, pathlib.Path] = None
-    quality: int = None
-    omitBackground: bool = None
-    fullPage: bool = None
-    clip: FloatRect = None
-
-
-@dataclasses.dataclass
-class PageTrackOptions:
-  diffTollerancePercent: float = None
-  ignoreAreas: List[IgnoreArea] = None
-  screenshotOptions: PageScreenshotOptions = None
-  agent: Agent = None
+    os: str = None
+    device: str = None
+    viewport: str = None
 
 
 @dataclasses.dataclass
@@ -44,15 +25,29 @@ class ElementHandleScreenshotOptions:
     type: Literal["jpeg", "png"] = None
     path: Union[str, pathlib.Path] = None
     quality: int = None
-    omitBackground: bool = None
+    omit_background: bool = None
+
+
+@dataclasses.dataclass
+class PageScreenshotOptions(ElementHandleScreenshotOptions):
+    full_page: bool = None
+    clip: FloatRect = None
+
+
+@dataclasses.dataclass
+class PageTrackOptions:
+    diffTollerancePercent: float = None
+    ignoreAreas: List[IgnoreArea] = None
+    screenshotOptions: PageScreenshotOptions = None
+    agent: Agent = None
 
 
 @dataclasses.dataclass
 class ElementHandleTrackOptions:
-  diffTollerancePercent: float = None
-  ignoreAreas: List[IgnoreArea] = None
-  screenshotOptions: ElementHandleScreenshotOptions = None
-  agent: Agent = None
+    diffTollerancePercent: float = None
+    ignoreAreas: List[IgnoreArea] = None
+    screenshotOptions: ElementHandleScreenshotOptions = None
+    agent: Agent = None
 
 
 class PlaywrightMixin:
@@ -61,12 +56,12 @@ class PlaywrightMixin:
         self.browser = browser
 
     def trackPage(
-        self,
-        page: sync_api.Page,
-        name: str,
-        options: PageTrackOptions = None
+            self,
+            page: sync_api.Page,
+            name: str,
+            options: PageTrackOptions = None
     ):
-        viewportSize = page.viewportSize()
+        viewportSize = page.viewport_size
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = page.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot).decode('ascii')
@@ -83,12 +78,12 @@ class PlaywrightMixin:
         ))
 
     async def trackPageAsync(
-        self,
-        page: async_api.Page,
-        name: str,
-        options: PageTrackOptions = None
+            self,
+            page: async_api.Page,
+            name: str,
+            options: PageTrackOptions = None
     ):
-        viewportSize = page.viewportSize()
+        viewportSize = page.viewport_size
 
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = await page.screenshot(**screenshotOptions)
@@ -106,10 +101,10 @@ class PlaywrightMixin:
         ))
 
     def trackElementHandle(
-        self,
-        elementHandle: sync_api.ElementHandle,
-        name: str,
-        options: ElementHandleTrackOptions = None
+            self,
+            elementHandle: sync_api.ElementHandle,
+            name: str,
+            options: ElementHandleTrackOptions = None
     ):
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = elementHandle.screenshot(**screenshotOptions)
@@ -127,10 +122,10 @@ class PlaywrightMixin:
         ))
 
     async def trackElementHandleAsync(
-        self,
-        elementHandle: async_api.ElementHandle,
-        name: str,
-        options: ElementHandleTrackOptions = None
+            self,
+            elementHandle: async_api.ElementHandle,
+            name: str,
+            options: ElementHandleTrackOptions = None
     ):
         screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
         screenshot = await elementHandle.screenshot(**screenshotOptions)
