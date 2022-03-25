@@ -137,9 +137,15 @@ def test__start__should_start_build(vrt, mock_request):
     mock_request.assert_called_once_with(
         f'{CONFIG.apiUrl}/builds',
         'post',
-        {'ciBuildId': CONFIG.ciBuildId,
-            'branchName': CONFIG.branchName, 'project': CONFIG.project},
-        {'apiKey': CONFIG.apiKey},
+        {
+            'ciBuildId': CONFIG.ciBuildId,
+            'branchName': CONFIG.branchName,
+            'project': CONFIG.project
+        },
+        {
+            'apiKey': CONFIG.apiKey,
+            'project': CONFIG.project
+        },
     )
 
     assert vrt.buildId == buildId
@@ -249,7 +255,10 @@ def test__submitTestResults__should_submit_test_run(vrt, mock_request):
                 }
             ]
         },
-        {'apiKey': CONFIG.apiKey},
+        {
+            'apiKey': CONFIG.apiKey,
+            'project': CONFIG.project
+        },
     )
 
 
