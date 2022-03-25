@@ -137,8 +137,15 @@ def test__start__should_start_build(vrt, mock_request):
     mock_request.assert_called_once_with(
         f'{CONFIG.apiUrl}/builds',
         'post',
-        {'ciBuildId': CONFIG.ciBuildId, 'branchName': CONFIG.branchName, 'project': CONFIG.project},
-        {'apiKey': CONFIG.apiKey},
+        {
+            'ciBuildId': CONFIG.ciBuildId,
+            'branchName': CONFIG.branchName,
+            'project': CONFIG.project
+        },
+        {
+            'apiKey': CONFIG.apiKey,
+            'project': CONFIG.project
+        },
     )
 
     assert vrt.buildId == buildId
@@ -157,7 +164,10 @@ def test__stop__should_stop_build(vrt, mock_request, mocker):
         f'{CONFIG.apiUrl}/builds/{buildId}',
         'patch',
         data={},
-        headers={'apiKey': CONFIG.apiKey},
+        headers={
+            'apiKey': CONFIG.apiKey,
+            'project': CONFIG.project
+        },
     )
     assert vrt.buildId is None
     assert vrt.projectId is None
@@ -245,7 +255,10 @@ def test__submitTestResults__should_submit_test_run(vrt, mock_request):
                 }
             ]
         },
-        {'apiKey': CONFIG.apiKey},
+        {
+            'apiKey': CONFIG.apiKey,
+            'project': CONFIG.project
+        },
     )
 
 
@@ -283,7 +296,8 @@ def test__http_request__success(mocker):
     (401, {}, 'Unauthorized'),
     (403, {}, 'Api key not authenticated'),
     (404, {}, 'Project not found'),
-    (500, '{"message": "exception message"}', json.dumps('{"message": "exception message"}', indent=2)),
+    (500, '{"message": "exception message"}', json.dumps(
+        '{"message": "exception message"}', indent=2)),
 ])
 def test__http_request__maps_status_code(
         mocker, status_code, response_body, expected_match):
