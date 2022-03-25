@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='visual_regression_tracker',
-    version='4.8.0',
+    version='4.9.0',
     description='Open source, self hosted solution for visual testing '
                 'and managing results of visual testing.',
     long_description=open('README.md').read(),
