@@ -24,7 +24,10 @@ class VisualRegressionTracker:
         :param config: The configuration to use.
         """
         self.config = config or Config.default()
-        self.headers = {'apiKey': self.config.apiKey}
+        self.headers = {
+            'apiKey': self.config.apiKey,
+            'project': self.config.project
+        }
         self.config.check_complete()
 
     def _isStarted(self):
@@ -48,7 +51,8 @@ class VisualRegressionTracker:
 
     def stop(self):
         if not self._isStarted():
-            raise VisualRegressionTrackerError("Visual Regression Tracker has not been started")
+            raise VisualRegressionTrackerError(
+                "Visual Regression Tracker has not been started")
 
         _http_request(
             f'{self.config.apiUrl}/builds/{self.buildId}',
@@ -70,7 +74,8 @@ class VisualRegressionTracker:
 
     def _submitTestResult(self, test: TestRun) -> TestRunResponse:
         if not self._isStarted():
-            raise VisualRegressionTrackerError("Visual Regression Tracker has not been started")
+            raise VisualRegressionTrackerError(
+                "Visual Regression Tracker has not been started")
 
         data = _to_dict(test)
         data.update(
