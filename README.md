@@ -108,7 +108,7 @@ vrt.track(TestRun(
     # Required
     imageBase64=image,
 
-    # Allowed mismatch tollerance in %
+    # Allowed mismatch Tolerance in %
     # Optional
     # Default: 0%
     diffTolerancePercent=1,
