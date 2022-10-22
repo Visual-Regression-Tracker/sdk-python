@@ -10,44 +10,44 @@ from visual_regression_tracker.types import \
     ({'id': '1', 'wrong': 2}, Build, Build('1', None)),
     ({'wrong': 1, 'projectId': '2'}, Build, Build(None, '2')),
     (
-            {'name': 'name', 'ignoreAreas': [{'x': 1, 'height': 2}]},
-            TestRun,
-            TestRun('name', ignoreAreas=[IgnoreArea(1, None, None, 2)])
+        {'name': 'name', 'ignoreAreas': [{'x': 1, 'height': 2}]},
+        TestRun,
+        TestRun('name', ignoreAreas=[IgnoreArea(1, None, None, 2)])
     ),
     (
-            {'id': 'id', 'imageName': 'imageName',
-             'diffName': 'diffName', 'baselineName': 'baselineName', 'diffPercent': 10.1,
-             'diffTollerancePercent': 2.22, 'pixelMisMatchCount': 33, 'status': TestRunStatus.NEW,
-             'merge': True,
-             'url': 'someUrl'},
-            TestRunResponse,
-            TestRunResponse(
-                id='id',
-                imageName='imageName',
-                diffName='diffName',
-                baselineName='baselineName',
-                diffPercent=10.1,
-                diffTollerancePercent=2.22,
-                pixelMisMatchCount=33,
-                status=TestRunStatus.NEW,
-                url='someUrl',
-                merge=True
-            )
+        {'id': 'id', 'imageName': 'imageName',
+         'diffName': 'diffName', 'baselineName': 'baselineName', 'diffPercent': 10.1,
+         'diffTolerancePercent': 2.22, 'pixelMisMatchCount': 33, 'status': TestRunStatus.NEW,
+         'merge': True,
+         'url': 'someUrl'},
+        TestRunResponse,
+        TestRunResponse(
+            id='id',
+            imageName='imageName',
+            diffName='diffName',
+            baselineName='baselineName',
+            diffPercent=10.1,
+            diffTolerancePercent=2.22,
+            pixelMisMatchCount=33,
+            status=TestRunStatus.NEW,
+            url='someUrl',
+            merge=True
+        )
     ),
     (
-            {'id': 'id', 'imageName': 'imageName',
-             'diffName': None, 'baselineName': None, 'diffPercent': None,
-             'diffTollerancePercent': None, 'pixelMisMatchCount': None, 'status': TestRunStatus.UNRESOLVED,
-             'merge': False,
-             'url': 'someUrl'},
-            TestRunResponse,
-            TestRunResponse(
-                id='id',
-                imageName='imageName',
-                status=TestRunStatus.UNRESOLVED,
-                url='someUrl',
-                merge=False
-            )
+        {'id': 'id', 'imageName': 'imageName',
+         'diffName': None, 'baselineName': None, 'diffPercent': None,
+         'diffTolerancePercent': None, 'pixelMisMatchCount': None, 'status': TestRunStatus.UNRESOLVED,
+         'merge': False,
+         'url': 'someUrl'},
+        TestRunResponse,
+        TestRunResponse(
+            id='id',
+            imageName='imageName',
+            status=TestRunStatus.UNRESOLVED,
+            url='someUrl',
+            merge=False
+        )
     )
 ])
 def test__from_dict(data, clazz, expected):
@@ -62,12 +62,12 @@ def test__from_dict(data, clazz, expected):
     (Build(None, 2), {'projectId': 2}),
     (TestRun(name='name', ignoreAreas=None), {'name': 'name'}),
     (
-            TestRun(name='name', ignoreAreas=[]),
-            {'name': 'name', 'ignoreAreas': []}
+        TestRun(name='name', ignoreAreas=[]),
+        {'name': 'name', 'ignoreAreas': []}
     ),
     (
-            TestRun(name='name', ignoreAreas=[IgnoreArea(1)]),
-            {'name': 'name', 'ignoreAreas': [{'x': 1}]}
+        TestRun(name='name', ignoreAreas=[IgnoreArea(1)]),
+        {'name': 'name', 'ignoreAreas': [{'x': 1}]}
     ),
 ])
 def test__to_dict(obj, expected):

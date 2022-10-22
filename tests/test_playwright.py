@@ -1,10 +1,10 @@
+import visual_regression_tracker.playwright
 import asyncio
 import pytest
 import base64
 import binascii
 import visual_regression_tracker
 playwright = pytest.importorskip('playwright')
-import visual_regression_tracker.playwright
 
 CONFIG = visual_regression_tracker.Config(
     apiUrl='https://server/',
@@ -18,21 +18,28 @@ CONFIG = visual_regression_tracker.Config(
 
 @pytest.fixture
 def pvrt(sync_browserType, mocker):
-    mocker.patch.object(visual_regression_tracker.VisualRegressionTracker, 'start')
-    mocker.patch.object(visual_regression_tracker.VisualRegressionTracker, 'track')
-    mocker.patch.object(visual_regression_tracker.VisualRegressionTracker, 'stop')
-    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(sync_browserType, CONFIG)
+    mocker.patch.object(
+        visual_regression_tracker.VisualRegressionTracker, 'start')
+    mocker.patch.object(
+        visual_regression_tracker.VisualRegressionTracker, 'track')
+    mocker.patch.object(
+        visual_regression_tracker.VisualRegressionTracker, 'stop')
+    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(
+        sync_browserType, CONFIG)
     return pvrt
 
 
 def test_pvrt_extends_vrt(sync_browserType):
-    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(sync_browserType, CONFIG)
+    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(
+        sync_browserType, CONFIG)
     assert isinstance(pvrt, visual_regression_tracker.VisualRegressionTracker)
 
 
 def test_pvrt_extends_mixin(sync_browserType):
-    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(sync_browserType, CONFIG)
-    assert isinstance(pvrt, visual_regression_tracker.playwright.PlaywrightMixin)
+    pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(
+        sync_browserType, CONFIG)
+    assert isinstance(
+        pvrt, visual_regression_tracker.playwright.PlaywrightMixin)
 
 
 def test_pvrt_init_saves_parameters(pvrt, sync_browserType):
@@ -88,7 +95,7 @@ def test_pvrt_trackPage__default_options(pvrt, sync_page, sync_browserType):
     assert testRun.browser == sync_browserType.name
     assert testRun.viewport == '1024x768'
     assert testRun.device is None
-    assert testRun.diffTollerancePercent is None
+    assert testRun.diffTolerancePercent is None
     assert testRun.ignoreAreas is None
 
 
@@ -97,7 +104,7 @@ def test_pvrt_trackPage(pvrt, sync_page, sync_browserType):
         sync_page,
         'image name',
         visual_regression_tracker.playwright.PageTrackOptions(
-            diffTollerancePercent=10,
+            diffTolerancePercent=10,
             ignoreAreas=[
                 visual_regression_tracker.types.IgnoreArea(1, 2, 3, 4),
             ],
@@ -126,7 +133,7 @@ def test_pvrt_trackPage(pvrt, sync_page, sync_browserType):
     assert testRun.browser == sync_browserType.name
     assert testRun.viewport == '1024x768'
     assert testRun.device == 'device'
-    assert testRun.diffTollerancePercent == 10
+    assert testRun.diffTolerancePercent == 10
     assert testRun.ignoreAreas == [
         visual_regression_tracker.types.IgnoreArea(1, 2, 3, 4),
     ]
@@ -149,7 +156,7 @@ def test_pvrt_trackElementHandle__default_options(pvrt, sync_elementHandle, sync
     assert testRun.browser == sync_browserType.name
     assert testRun.viewport is None
     assert testRun.device is None
-    assert testRun.diffTollerancePercent is None
+    assert testRun.diffTolerancePercent is None
     assert testRun.ignoreAreas is None
 
 
@@ -158,7 +165,7 @@ def test_pvrt_trackElementHandle(pvrt, sync_elementHandle, sync_browserType):
         sync_elementHandle,
         'image name',
         visual_regression_tracker.playwright.ElementHandleTrackOptions(
-            diffTollerancePercent=10,
+            diffTolerancePercent=10,
             ignoreAreas=[
                 visual_regression_tracker.types.IgnoreArea(1, 2, 3, 4),
             ],
@@ -186,7 +193,7 @@ def test_pvrt_trackElementHandle(pvrt, sync_elementHandle, sync_browserType):
     assert testRun.browser == sync_browserType.name
     assert testRun.viewport == '123x345'
     assert testRun.device == 'device'
-    assert testRun.diffTollerancePercent == 10
+    assert testRun.diffTolerancePercent == 10
     assert testRun.ignoreAreas == [
         visual_regression_tracker.types.IgnoreArea(1, 2, 3, 4),
     ]
@@ -251,7 +258,7 @@ async def test_pvrt_trackPageAsync__default_options(pvrt, async_page, async_brow
     assert testRun.browser == async_browserType.name
     assert testRun.viewport == '1024x768'
     assert testRun.device is None
-    assert testRun.diffTollerancePercent is None
+    assert testRun.diffTolerancePercent is None
     assert testRun.ignoreAreas is None
 
 
@@ -261,7 +268,7 @@ async def test_pvrt_trackPageAsync(pvrt, async_page, async_browserType):
         async_page,
         'image name',
         visual_regression_tracker.playwright.PageTrackOptions(
-            diffTollerancePercent=10,
+            diffTolerancePercent=10,
             ignoreAreas=[
                 visual_regression_tracker.types.IgnoreArea(1, 2, 3, 4),
             ],
@@ -290,7 +297,7 @@ async def test_pvrt_trackPageAsync(pvrt, async_page, async_browserType):
     assert testRun.browser == async_browserType.name
     assert testRun.viewport == '1024x768'
     assert testRun.device == 'device'
-    assert testRun.diffTollerancePercent == 10
+    assert testRun.diffTolerancePercent == 10
     assert testRun.ignoreAreas == [
         visual_regression_tracker.types.IgnoreArea(1, 2, 3, 4),
     ]
@@ -315,7 +322,7 @@ async def test_pvrt_trackElementHandleAsync__default_options(pvrt, async_element
     assert testRun.browser == async_browserType.name
     assert testRun.viewport is None
     assert testRun.device is None
-    assert testRun.diffTollerancePercent is None
+    assert testRun.diffTolerancePercent is None
     assert testRun.ignoreAreas is None
 
 
@@ -325,7 +332,7 @@ async def test_pvrt_trackElementHandleAsync(pvrt, async_elementHandle, async_bro
         async_elementHandle,
         'image name',
         visual_regression_tracker.playwright.ElementHandleTrackOptions(
-            diffTollerancePercent=10,
+            diffTolerancePercent=10,
             ignoreAreas=[
                 visual_regression_tracker.types.IgnoreArea(1, 2, 3, 4),
             ],
@@ -353,7 +360,7 @@ async def test_pvrt_trackElementHandleAsync(pvrt, async_elementHandle, async_bro
     assert testRun.browser == async_browserType.name
     assert testRun.viewport == '123x345'
     assert testRun.device == 'device'
-    assert testRun.diffTollerancePercent == 10
+    assert testRun.diffTolerancePercent == 10
     assert testRun.ignoreAreas == [
         visual_regression_tracker.types.IgnoreArea(1, 2, 3, 4),
     ]

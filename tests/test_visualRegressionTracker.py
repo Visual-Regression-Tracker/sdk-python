@@ -64,7 +64,7 @@ def test__track__should_track_success(vrt, mocker):
         status=TestRunStatus.OK,
         pixelMisMatchCount=12,
         diffPercent=0.12,
-        diffTollerancePercent=0,
+        diffTolerancePercent=0,
         imageName='imageName',
         diffName='diffName',
         baselineName='baselineName'
@@ -87,7 +87,7 @@ track_test_data = [
             status=TestRunStatus.NEW,
             pixelMisMatchCount=12,
             diffPercent=0.12,
-            diffTollerancePercent=0,
+            diffTolerancePercent=0,
         ),
         'No baseline: url'
     ),
@@ -97,7 +97,7 @@ track_test_data = [
             status=TestRunStatus.UNRESOLVED,
             pixelMisMatchCount=12,
             diffPercent=0.12,
-            diffTollerancePercent=0,
+            diffTolerancePercent=0,
         ),
         'Difference found: url'
     )
@@ -212,7 +212,7 @@ def test__submitTestResults__should_submit_test_run(vrt, mock_request):
         status=TestRunStatus.UNRESOLVED,
         pixelMisMatchCount=12,
         diffPercent=0.12,
-        diffTollerancePercent=0,
+        diffTolerancePercent=0,
     )
     testRun = TestRun(
         name='name',

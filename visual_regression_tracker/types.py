@@ -9,7 +9,7 @@ class IgnoreArea:
     x: int = None
     y: int = None
     width: int = None
-    height: int  = None
+    height: int = None
 
 
 @dataclasses.dataclass
@@ -20,7 +20,7 @@ class TestRun:
     browser: str = None
     viewport: str = None
     device: str = None
-    diffTollerancePercent: float = None
+    diffTolerancePercent: float = None
     ignoreAreas: typing.List[IgnoreArea] = None
 
 
@@ -47,7 +47,7 @@ class TestRunResponse:
     status: TestRunStatus = None
     pixelMisMatchCount: typing.Optional[float] = None
     diffPercent: typing.Optional[float] = None
-    diffTollerancePercent: typing.Optional[float] = None
+    diffTolerancePercent: typing.Optional[float] = None
 
 
 @dataclasses.dataclass

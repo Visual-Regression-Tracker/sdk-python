@@ -36,7 +36,7 @@ class PageScreenshotOptions(ElementHandleScreenshotOptions):
 
 @dataclasses.dataclass
 class PageTrackOptions:
-    diffTollerancePercent: float = None
+    diffTolerancePercent: float = None
     ignoreAreas: List[IgnoreArea] = None
     screenshotOptions: PageScreenshotOptions = None
     agent: Agent = None
@@ -44,7 +44,7 @@ class PageTrackOptions:
 
 @dataclasses.dataclass
 class ElementHandleTrackOptions:
-    diffTollerancePercent: float = None
+    diffTolerancePercent: float = None
     ignoreAreas: List[IgnoreArea] = None
     screenshotOptions: ElementHandleScreenshotOptions = None
     agent: Agent = None
@@ -62,7 +62,8 @@ class PlaywrightMixin:
             options: PageTrackOptions = None
     ):
         viewportSize = page.viewport_size
-        screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
+        screenshotOptions = _to_dict(
+            options.screenshotOptions) if options else {}
         screenshot = page.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
@@ -73,7 +74,7 @@ class PlaywrightMixin:
             self.browser.name,
             f'{viewportSize["width"]}x{viewportSize["height"]}' if viewportSize else None,
             options.agent.device if options and options.agent else None,
-            options.diffTollerancePercent if options else None,
+            options.diffTolerancePercent if options else None,
             options.ignoreAreas if options else None,
         ))
 
@@ -85,7 +86,8 @@ class PlaywrightMixin:
     ):
         viewportSize = page.viewport_size
 
-        screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
+        screenshotOptions = _to_dict(
+            options.screenshotOptions) if options else {}
         screenshot = await page.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
@@ -96,7 +98,7 @@ class PlaywrightMixin:
             self.browser.name,
             f'{viewportSize["width"]}x{viewportSize["height"]}' if viewportSize else None,
             options.agent.device if options and options.agent else None,
-            options.diffTollerancePercent if options else None,
+            options.diffTolerancePercent if options else None,
             options.ignoreAreas if options else None,
         ))
 
@@ -106,7 +108,8 @@ class PlaywrightMixin:
             name: str,
             options: ElementHandleTrackOptions = None
     ):
-        screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
+        screenshotOptions = _to_dict(
+            options.screenshotOptions) if options else {}
         screenshot = elementHandle.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
@@ -117,7 +120,7 @@ class PlaywrightMixin:
             self.browser.name,
             options.agent.viewport if options and options.agent else None,
             options.agent.device if options and options.agent else None,
-            options.diffTollerancePercent if options else None,
+            options.diffTolerancePercent if options else None,
             options.ignoreAreas if options else None,
         ))
 
@@ -127,7 +130,8 @@ class PlaywrightMixin:
             name: str,
             options: ElementHandleTrackOptions = None
     ):
-        screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
+        screenshotOptions = _to_dict(
+            options.screenshotOptions) if options else {}
         screenshot = await elementHandle.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
@@ -138,7 +142,7 @@ class PlaywrightMixin:
             self.browser.name,
             options.agent.viewport if options and options.agent else None,
             options.agent.device if options and options.agent else None,
-            options.diffTollerancePercent if options else None,
+            options.diffTolerancePercent if options else None,
             options.ignoreAreas if options else None,
         ))
 

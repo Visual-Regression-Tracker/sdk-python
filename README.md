@@ -111,7 +111,7 @@ vrt.track(TestRun(
     # Allowed mismatch tollerance in %
     # Optional
     # Default: 0%
-    diffTollerancePercent=1,
+    diffTolerancePercent=1,
 
     # Optional
     os='Mac',
@@ -197,7 +197,7 @@ vrt.trackPage(page, imageName[, options])
 - `imageName: str` name for the taken screenshot image
 
 - `options: PageTrackOptions` optional configuration with:
-  - `diffTollerancePercent: float` specify acceptable difference from baseline, between `0-100`.
+  - `diffTolerancePercent: float` specify acceptable difference from baseline, between `0-100`.
 
   - `ignoreAreas: List[IgnoreArea]` 
     - `x: int`  X-coordinate relative of left upper corner
@@ -234,7 +234,7 @@ vrt.trackElementHandle(elementHandle, imageName[, options])
 - `imageName: str` name for the taken screenshot image
 
 - `options: ElementHandleTrackOptions` optional configuration with:
-  - `diffTollerancePercent: float` specify acceptable difference from baseline, between `0-100`.
+  - `diffTolerancePercent: float` specify acceptable difference from baseline, between `0-100`.
 
   - `ignoreAreas: List[IgnoreArea]` 
     - `x: int`  X-coordinate relative of left upper corner
