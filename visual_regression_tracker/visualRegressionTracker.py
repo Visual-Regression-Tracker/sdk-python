@@ -3,6 +3,8 @@ import logging
 
 import requests
 
+from urllib.parse import urljoin
+
 from .types import \
     Build, TestRun, TestRunResponse, TestRunStatus, \
     _to_dict, _from_dict, TestRunResult
@@ -40,7 +42,7 @@ class VisualRegressionTracker:
             'project': self.config.project,
         }
         result = _http_request(
-            f'{self.config.apiUrl}/builds',
+            urljoin(self.config.apiUrl,'/builds'),
             'post',
             data,
             self.headers
