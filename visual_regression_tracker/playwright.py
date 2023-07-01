@@ -66,7 +66,7 @@ class PlaywrightMixin:
         screenshot = page.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
-        self.track(TestRun(
+        return self.track(TestRun(
             name,
             imageBase64,
             options.agent.os if options and options.agent else None,
@@ -89,7 +89,7 @@ class PlaywrightMixin:
         screenshot = await page.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
-        self.track(TestRun(
+        return self.track(TestRun(
             name,
             imageBase64,
             options.agent.os if options and options.agent else None,
@@ -110,7 +110,7 @@ class PlaywrightMixin:
         screenshot = elementHandle.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
-        self.track(TestRun(
+        return self.track(TestRun(
             name,
             imageBase64,
             options.agent.os if options and options.agent else None,
@@ -131,7 +131,7 @@ class PlaywrightMixin:
         screenshot = await elementHandle.screenshot(**screenshotOptions)
         imageBase64 = base64.b64encode(screenshot).decode('ascii')
 
-        self.track(TestRun(
+        return self.track(TestRun(
             name,
             imageBase64,
             options.agent.os if options and options.agent else None,
