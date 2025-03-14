@@ -34,6 +34,7 @@ class TestRunStatus(enum.Enum):
     NEW = 'new'
     OK = 'ok'
     UNRESOLVED = 'unresolved'
+    AUTO_APPROVED = 'autoApproved'
 
 
 @dataclasses.dataclass
