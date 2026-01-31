@@ -25,9 +25,16 @@ class TestRun:
 
 
 @dataclasses.dataclass
+class Project:
+    id: str = None
+    name: str = None
+
+@dataclasses.dataclass
 class Build:
     id: str = None
+    ciBuildId: str | None = None
     projectId: str = None
+    status: str = None
 
 
 class TestRunStatus(enum.Enum):

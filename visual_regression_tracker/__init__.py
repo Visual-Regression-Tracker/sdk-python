@@ -23,9 +23,10 @@ from .types import Build, IgnoreArea, TestRun, TestRunResponse, TestRunStatus
 from .exceptions import VisualRegressionTrackerError, ServerError, TestRunError, MissingConfigurationError
 from .config import Config
 from .visualRegressionTracker import VisualRegressionTracker
+from .client import Client, ClientConfig
 
 __all__ = [
     'Config', 'Build', 'IgnoreArea', 'TestRun', 'TestRunResponse', 'TestRunStatus',
     'VisualRegressionTrackerError', 'ServerError', 'TestRunError', 'MissingConfigurationError',
-    'VisualRegressionTracker',
+    'VisualRegressionTracker', 'Client', 'ClientConfig',
 ]
