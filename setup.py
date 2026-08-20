@@ -1,15 +1,15 @@
 from setuptools import setup
 
 setup(
-    name='visual_regression_tracker',
-    version='4.9.0',
+    name='bmx-visual_regression_tracker',
+    version='4.9.1',
     description='Open source, self hosted solution for visual testing '
                 'and managing results of visual testing.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
     author='',
     license='APACHE',
-    url='https://github.com/Visual-Regression-Tracker/'
+    url='https://github.com/mokhtardziri/'
         'Visual-Regression-Tracker',
     packages=['visual_regression_tracker'],
     python_requires='>=3.6',
