@@ -12,10 +12,10 @@ setup(
     url='https://github.com/Visual-Regression-Tracker/'
         'Visual-Regression-Tracker',
     packages=['visual_regression_tracker'],
-    python_requires='>=3.6',
-    install_requires=['requests', 'dacite', 'dataclasses;python_version<"3.7"'],
+    python_requires='>=3.9',
+    install_requires=['requests', 'dacite'],
     extras_require={
-        # Playwright provides browser automation, requires python3.7 and above.
+        # Playwright provides browser automation.
         "playwright": [
             "playwright",
         ],
