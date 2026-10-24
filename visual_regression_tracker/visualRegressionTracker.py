@@ -57,7 +57,7 @@ class VisualRegressionTracker:
         _http_request(
             f'{self.config.apiUrl}/builds/{self.buildId}',
             'patch',
-            data={},
+            data={'isRunning': False},
             headers=self.headers
         )
         self.buildId = None
