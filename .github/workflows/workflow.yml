@@ -27,10 +27,3 @@ jobs:
         run: pip install playwright && python -m playwright install-deps chromium
       - name: Run Tox
         run: tox
-      - name: Codacy Coverage Reporter
-        # secrets are not available to pull requests from forks
-        if: github.event_name == 'push'
-        uses: codacy/codacy-coverage-reporter-action@v1
-        with:
-          project-token: ${{ secrets.CODACY_TOKEN }}
-          coverage-reports: coverage.xml

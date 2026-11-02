@@ -1,5 +1,5 @@
-pytest >= 9.2
-pytest-cov >= 7.1
-pytest-mock >= 3.17
-pytest-asyncio >= 1.4
-pylint >= 4.1
+pytest==9.2.0
+pytest-cov==7.1.0
+pytest-mock==3.17.0
+pytest-asyncio==1.4.1.post1
+pylint==4.1.3

@@ -1,0 +1,37 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    # requirements.txt pins the dev tools; pyproject.toml keeps ranges, raised only when a fix needs it
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    versioning-strategy: increase-if-necessary
+    groups:
+      # one PR for all minor/patch bumps
+      pip-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      # majors usually need code changes, so they come apart from minor/patch
+      pip-major:
+        patterns:
+          - "*"
+        update-types:
+          - major
+      # security fixes in a single PR too
+      pip-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
