@@ -59,6 +59,12 @@ def test_config_from_environment(config_env):
     assert cfg.httpTimeoutInSeconds == 7.5
 
 
+def config_from_file(tmp_path, data):
+    path = tmp_path / 'vrt.json'
+    path.write_text(json.dumps(data))
+    return Config.from_file(path)
+
+
 def test_config_timeout_defaults_to_360_seconds():
     assert Config().httpTimeoutInSeconds == 360
 
@@ -67,7 +73,14 @@ def test_config_treats_empty_timeout_variable_as_unset():
     assert Config.from_environment({'VRT_HTTPTIMEOUTINSECONDS': ''}).httpTimeoutInSeconds == 360
 
 
-@pytest.mark.parametrize('value', ['-1', 'soon'])
+def test_config_treats_empty_variables_as_unset():
+    cfg = Config.from_environment({'VRT_CIBUILDID': '', 'VRT_APIURL': ''})
+
+    assert cfg.ciBuildId is None
+    assert cfg.apiUrl == 'http://localhost:4200'
+
+
+@pytest.mark.parametrize('value', ['-1', 'soon', 'nan'])
 def test_config_rejects_invalid_timeout_variable(value):
     with pytest.raises(InvalidConfigurationError, match='VRT_HTTPTIMEOUTINSECONDS') as error:
         Config.from_environment({'VRT_HTTPTIMEOUTINSECONDS': value})
@@ -75,10 +88,13 @@ def test_config_rejects_invalid_timeout_variable(value):
     assert error.value.field == 'httpTimeoutInSeconds'
 
 
-def config_from_file(tmp_path, data):
-    path = tmp_path / 'vrt.json'
-    path.write_text(json.dumps(data))
-    return Config.from_file(path)
+@pytest.mark.parametrize('make_config', [
+    lambda tmp_path: Config(httpTimeoutInSeconds=-1),
+    lambda tmp_path: config_from_file(tmp_path, {'httpTimeoutInSeconds': -5}),
+])
+def test_config_rejects_negative_timeout_from_any_source(make_config, tmp_path):
+    with pytest.raises(InvalidConfigurationError, match='httpTimeoutInSeconds'):
+        make_config(tmp_path)
 
 
 @pytest.mark.parametrize('make_config', [

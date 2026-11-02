@@ -9,6 +9,8 @@ from .exceptions import \
     RequestError, ServerError, TestRunError, VisualRegressionTrackerError
 from .config import Config
 
+CONNECT_TIMEOUT_SECONDS = 10
+
 
 class VisualRegressionTracker:
     config: Config = None
@@ -104,8 +106,6 @@ class VisualRegressionTracker:
 
         return TestRunResult(result, self.config.apiUrl)
 
-
-CONNECT_TIMEOUT_SECONDS = 10
 
 _HINTS = {
     413: 'the request is larger than BODY_PARSER_JSON_LIMIT on the server; raise it or send a smaller screenshot',

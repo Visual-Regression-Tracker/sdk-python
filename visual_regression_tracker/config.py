@@ -35,6 +35,9 @@ class Config:
     def __setattr__(self, name, value):
         if name == 'apiUrl' and isinstance(value, str):
             value = value.rstrip('/')
+        if name == 'httpTimeoutInSeconds' and not _is_seconds(value):
+            raise InvalidConfigurationError(
+                name, f'{name} ({ENV_MAPPING[name]}) must be a non-negative number of seconds, got {value!r}.')
         super().__setattr__(name, value)
 
     @staticmethod
@@ -71,18 +74,19 @@ class Config:
     def apply_environment(self, environment: dict = None):
         fields = {f.name:f.type for f in dataclasses.fields(self)}
         for field_name, env_name in ENV_MAPPING.items():
-            val = environment.get(env_name, None)
+            val = environment.get(env_name)
             field_type = fields[field_name]
-            if val is None:
+            if not val:
                 continue
             if field_type is str:
                 pass
             elif field_type is bool:
                 val = val.lower() in ('true', '1')
             elif field_type is float:
-                if not val:
-                    continue
-                val = _seconds(field_name, env_name, val)
+                try:
+                    val = float(val)
+                except ValueError:
+                    pass
             else:
                 raise Exception('Unsupported type')
             setattr(self, field_name, val)
@@ -99,11 +103,5 @@ class Config:
                 raise MissingConfigurationError(field_name, f'{field_name} is not specified.')
 
 
-def _seconds(field_name: str, env_name: str, val: str) -> float:
-    try:
-        seconds = float(val)
-    except ValueError:
-        seconds = None
-    if seconds is None or not seconds >= 0:
-        raise InvalidConfigurationError(field_name, f'{env_name} must be a non-negative number of seconds, got {val!r}.')
-    return seconds
+def _is_seconds(value) -> bool:
+    return value is None or (isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0)

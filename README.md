@@ -84,6 +84,7 @@ VRT_ENABLESOFTASSERT=true \
 VRT_HTTPTIMEOUTINSECONDS=360 \
     python
 ```
+Empty variables are ignored.
 ```python
 vrt = VisualRegressionTracker()
 ```
