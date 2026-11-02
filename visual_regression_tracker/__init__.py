@@ -20,12 +20,15 @@ Basic usage:
 """
 
 from .types import Build, IgnoreArea, TestRun, TestRunResponse, TestRunStatus
-from .exceptions import VisualRegressionTrackerError, ServerError, TestRunError, MissingConfigurationError
+from .exceptions import \
+    VisualRegressionTrackerError, ServerError, RequestError, TestRunError, \
+    MissingConfigurationError, InvalidConfigurationError
 from .config import Config
 from .visualRegressionTracker import VisualRegressionTracker
 
 __all__ = [
     'Config', 'Build', 'IgnoreArea', 'TestRun', 'TestRunResponse', 'TestRunStatus',
-    'VisualRegressionTrackerError', 'ServerError', 'TestRunError', 'MissingConfigurationError',
+    'VisualRegressionTrackerError', 'ServerError', 'RequestError', 'TestRunError',
+    'MissingConfigurationError', 'InvalidConfigurationError',
     'VisualRegressionTracker',
 ]

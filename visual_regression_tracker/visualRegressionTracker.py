@@ -1,4 +1,3 @@
-import json
 import logging
 
 import requests
@@ -7,8 +6,10 @@ from .types import \
     Build, TestRun, TestRunResponse, TestRunStatus, \
     _to_dict, _from_dict, TestRunResult
 from .exceptions import \
-    ServerError, TestRunError, VisualRegressionTrackerError
+    RequestError, ServerError, TestRunError, VisualRegressionTrackerError
 from .config import Config
+
+CONNECT_TIMEOUT_SECONDS = 10
 
 
 class VisualRegressionTracker:
@@ -33,33 +34,32 @@ class VisualRegressionTracker:
     def _isStarted(self):
         return self.buildId is not None and self.projectId is not None
 
-    def start(self):
+    def _request(self, method: str, path: str, data: dict) -> dict:
+        return _http_request(
+            f'{self.config.apiUrl}/{path}',
+            method,
+            data,
+            self.headers,
+            (CONNECT_TIMEOUT_SECONDS, self.config.httpTimeoutInSeconds or None),
+        )
+
+    def start(self) -> Build:
         data = {
             'ciBuildId': self.config.ciBuildId,
             'branchName': self.config.branchName,
             'project': self.config.project,
         }
-        result = _http_request(
-            f'{self.config.apiUrl}/builds',
-            'post',
-            data,
-            self.headers
-        )
-        build = _from_dict(result, Build)
+        build = _from_dict(self._request('post', 'builds', data), Build)
         self.buildId = build.id
         self.projectId = build.projectId
+        return build
 
     def stop(self):
         if not self._isStarted():
             raise VisualRegressionTrackerError(
                 "Visual Regression Tracker has not been started")
 
-        _http_request(
-            f'{self.config.apiUrl}/builds/{self.buildId}',
-            'patch',
-            data={'isRunning': False},
-            headers=self.headers
-        )
+        self._request('patch', f'builds/{self.buildId}', {'isRunning': False})
         self.buildId = None
         self.projectId = None
 
@@ -84,18 +84,12 @@ class VisualRegressionTracker:
             branchName=self.config.branchName,
         )
 
-        result = _http_request(
-            f'{self.config.apiUrl}/test-runs',
-            'post',
-            data,
-            self.headers
-        )
-        result['status'] = TestRunStatus(result['status'])
+        result = self._request('post', 'test-runs', data)
         testRunResult = _from_dict(result, TestRunResponse)
 
         return testRunResult
 
-    def track(self, test: TestRun):
+    def track(self, test: TestRun) -> TestRunResult:
         result = self._submitTestResult(test)
 
         switcher = {
@@ -113,19 +107,36 @@ class VisualRegressionTracker:
         return TestRunResult(result, self.config.apiUrl)
 
 
-def _http_request(url: str, method: str, data: dict, headers: dict) -> dict:
+_HINTS = {
+    413: 'the request is larger than BODY_PARSER_JSON_LIMIT on the server; raise it or send a smaller screenshot',
+    422: 'the image has more pixels than MAX_IMAGE_PIXELS on the server; raise it or send a smaller screenshot',
+}
+
+
+def _http_request(url: str, method: str, data: dict, headers: dict, timeout: tuple) -> dict:
     request = getattr(requests, method.lower())
-    response = request(url, json=data, headers=headers)
+    try:
+        response = request(url, json=data, headers=headers, timeout=timeout)
+    except requests.RequestException as e:
+        raise RequestError(url, f'{method.upper()} {url} failed: {type(e).__name__}: {e}') from None
     status = response.status_code
-    result = response.json()
 
-    if status == 401:
-        raise ServerError('Unauthorized')
-    if status == 403:
-        raise ServerError('Api key not authenticated')
-    if status == 404:
-        raise ServerError('Project not found')
     if status >= 400:
-        raise ServerError(json.dumps(result, indent=2))
+        message = _error_message(response)
+        hint = _HINTS.get(status)
+        raise ServerError(status, f'{message} (hint: {hint})' if hint else message)
 
-    return result
+    try:
+        return response.json()
+    except ValueError:
+        raise ServerError(status, f'response from {response.url} is not JSON: {response.text.strip()[:200]}') from None
+
+
+def _error_message(response) -> str:
+    try:
+        message = response.json().get('message')
+    except (ValueError, AttributeError):
+        message = None
+    if isinstance(message, list):
+        message = ', '.join(map(str, message))
+    return message or response.text.strip() or response.reason or 'no error message'

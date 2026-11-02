@@ -3,13 +3,15 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/0b98190cea064d6f9f1210da653ba37b)](https://www.codacy.com/gh/Visual-Regression-Tracker/sdk-python?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Visual-Regression-Tracker/sdk-python&amp;utm_campaign=Badge_Grade)
 [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/0b98190cea064d6f9f1210da653ba37b)](https://www.codacy.com/gh/Visual-Regression-Tracker/sdk-python?utm_source=github.com&utm_medium=referral&utm_content=Visual-Regression-Tracker/sdk-python&utm_campaign=Badge_Coverage)
 
+Requires Python 3.10 or later. Image URLs in results need VRT server 5.0.10 or later; use 5.x of this SDK with VRT 6.0.
+
 ## Install
 
-```python
+```sh
 pip install visual-regression-tracker
 
 # or, with playwright integration
-pip install visual-regression-tracker[playwright]
+pip install "visual-regression-tracker[playwright]"
 python -m playwright install
 ```
 
@@ -18,7 +20,7 @@ python -m playwright install
 ### Import
 
 ```python
-from visual_regression_tracker import VisualRegressionTracker, Config, TestRun
+from visual_regression_tracker import VisualRegressionTracker, Config, TestRun, IgnoreArea
 ```
 
 ### Configure connection
@@ -43,6 +45,11 @@ config = Config(
 
     # enableSoftAssert - Log errors instead of exceptions
     enableSoftAssert=False,
+
+    # httpTimeoutInSeconds - How long to wait for the server's answer, 0 for no limit.
+    # The server compares images while answering track(); with VLM checks or a busy
+    # comparison queue that can take minutes, so keep it above 300.
+    httpTimeoutInSeconds=360,
 )
 
 vrt = VisualRegressionTracker(config)
@@ -56,9 +63,12 @@ vrt = VisualRegressionTracker(config)
     "apiKey":"tXZVHX0EA4YQM1MGDD",
     "ciBuildId":"commit_sha",
     "branchName":"develop",
-    "enableSoftAssert":false
+    "enableSoftAssert":false,
+    "httpTimeoutInSeconds":360
 }
 ```
+
+`vrt.json` is read from the current working directory.
 ```python
 vrt = VisualRegressionTracker()
 ```
@@ -71,8 +81,10 @@ VRT_APIKEY="tXZVHX0EA4YQM1MGDD" \
 VRT_CIBUILDID="commit_sha" \
 VRT_BRANCHNAME="develop" \
 VRT_ENABLESOFTASSERT=true \
+VRT_HTTPTIMEOUTINSECONDS=360 \
     python
 ```
+Empty variables are ignored.
 ```python
 vrt = VisualRegressionTracker()
 ```
@@ -89,7 +101,7 @@ with vrt:
 
 Without context manager:
 ```python
-vrt.start()
+build = vrt.start()  # Build(id, projectId)
 ...
 # track test runs
 ...
@@ -99,7 +111,7 @@ vrt.stop()
 ### Assert
 
 ```python
-vrt.track(TestRun(
+result = vrt.track(TestRun(
     # Name to be displayed
     # Required
     name='Image name',
@@ -145,13 +157,25 @@ vrt.track(TestRun(
 ))
 ```
 
+`track` returns a `TestRunResult`: `testRunResponse` (with `status` and the `url` of the test run in the
+VRT app) and `imageUrl`, `diffUrl`, `baselineUrl`.
+
+`track` raises `TestRunError` when the status is `new` (no baseline yet) or `unresolved` (difference found);
+with `enableSoftAssert` it logs the error instead. `ok`, `approved` and `autoApproved` pass; `failed` passes
+too, as in the JavaScript SDK. A status this SDK does not know becomes `TestRunStatus.UNKNOWN`.
+
+An HTTP error from the server raises `ServerError` with `status_code` and the server's `message`.
+A request that gets no answer (connection refused, connect timeout after 10 s, read timeout after
+`httpTimeoutInSeconds`) raises `RequestError` with the `url`. A read timeout on `track` does not mean
+the server dropped the test run: it may still be stored.
+
 ### Integration with Microsoft Playwright
 
 #### Imports
 ```python
-from playwright import sync_playwright
-from visual_regression_tracker import Config, TestRun
-from visual_regression_tracker.p import PlaywrightVisualRegressionTracker
+from playwright.sync_api import sync_playwright
+from visual_regression_tracker import Config
+from visual_regression_tracker.playwright import PlaywrightVisualRegressionTracker
 ```
 
 #### Start playwright and navigate to page
@@ -159,7 +183,7 @@ from visual_regression_tracker.p import PlaywrightVisualRegressionTracker
 playwright = sync_playwright().start()
 browserType = playwright.chromium
 browser = browserType.launch(headless=False)
-page = browser.newPage()
+page = browser.new_page()
 page.goto('https://www.python.org/')
 ```
 
@@ -189,10 +213,10 @@ vrt.stop()
 
 #### Track page
 ```python
-vrt.trackPage(page, imageName[, options])
+result = vrt.trackPage(page, imageName[, options])
 ```
 
-- `page: Page` [Playwright page](https://microsoft.github.io/playwright-python/sync_api.html#playwright.sync_api.Page)
+- `page: Page` [Playwright page](https://playwright.dev/python/docs/api/class-page)
 
 - `imageName: str` name for the taken screenshot image
 
@@ -206,7 +230,7 @@ vrt.trackPage(page, imageName[, options])
     - `height: int` area height in px
 
   - `screenshotOptions: PageScreenshotOptions` configuration for Playwrights `screenshot` method
-    - `full_page: bool`  When true, takes a screenshot of the full scrollable page, instead of the currently visibvle viewport. Defaults to `false`.
+    - `full_page: bool`  When true, takes a screenshot of the full scrollable page, instead of the currently visible viewport. Defaults to `false`.
 
     - `omit_background: bool`  Hides default white background and allows capturing screenshots with transparency. Defaults to `false`.
 
@@ -226,10 +250,12 @@ vrt.trackPage(page, imageName[, options])
 
 #### Track element handle
 ```python
-vrt.trackElementHandle(elementHandle, imageName[, options])
+result = vrt.trackElementHandle(elementHandle, imageName[, options])
 ```
 
-- `elementHandle: ElementHandle` [Playwright ElementHandle](https://microsoft.github.io/playwright-python/sync_api.html#playwright.sync_api.ElementHandle)
+The async API has `trackPageAsync` and `trackElementHandleAsync`. All four return the same `TestRunResult` as `track`.
+
+- `elementHandle: ElementHandle` [Playwright ElementHandle](https://playwright.dev/python/docs/api/class-elementhandle)
 
 - `imageName: str` name for the taken screenshot image
 
@@ -252,3 +278,11 @@ vrt.trackElementHandle(elementHandle, imageName[, options])
     - `os: str`  operating system name, like Windows, Mac, etc.
     - `device: str`  device name, PC identifier, mobile identifier etc.
     - `viewport: str` viewport size.
+
+## Development
+
+```sh
+pip install -e '.[playwright]' -r requirements.txt
+python -m playwright install chromium
+python -m pytest
+```

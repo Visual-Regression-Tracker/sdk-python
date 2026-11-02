@@ -8,11 +8,20 @@ class VisualRegressionTrackerError(Exception):
 
 
 class ServerError(VisualRegressionTrackerError):
-    """An error occurred on the VisualRegressionTracker server."""
+    """The VisualRegressionTracker server answered with an HTTP error."""
 
-    def __init__(self, *args):
-        """Initialises ServerError from server response."""
-        super(ServerError, self).__init__(*args)
+    def __init__(self, status_code: int, message: str):
+        self.status_code = status_code
+        self.message = message
+        super(ServerError, self).__init__(f'HTTP {status_code}: {message}')
+
+
+class RequestError(VisualRegressionTrackerError):
+    """A request to the VisualRegressionTracker server could not be sent or got no response."""
+
+    def __init__(self, url: str, message: str):
+        self.url = url
+        super(RequestError, self).__init__(message)
 
 
 class TestRunError(VisualRegressionTrackerError):
@@ -22,6 +31,14 @@ class TestRunError(VisualRegressionTrackerError):
         """Initialises TestRunError error."""
         self.status = status
         super(TestRunError, self).__init__(*args, status)
+
+
+class InvalidConfigurationError(VisualRegressionTrackerError):
+    """A VRT configuration value is invalid."""
+
+    def __init__(self, field: str, message: str):
+        self.field = field
+        super(InvalidConfigurationError, self).__init__(message)
 
 
 class MissingConfigurationError(VisualRegressionTrackerError):

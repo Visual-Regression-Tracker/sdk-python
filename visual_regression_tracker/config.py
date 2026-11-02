@@ -3,10 +3,10 @@ import typing
 import os
 import os.path
 import json
+import math
 import pathlib
-import sys
 
-from .exceptions import MissingConfigurationError
+from .exceptions import InvalidConfigurationError, MissingConfigurationError
 from .types import _from_dict
 
 
@@ -19,6 +19,7 @@ ENV_MAPPING = {
     'project': 'VRT_PROJECT',
     'apiKey': 'VRT_APIKEY',
     'enableSoftAssert': 'VRT_ENABLESOFTASSERT',
+    'httpTimeoutInSeconds': 'VRT_HTTPTIMEOUTINSECONDS',
 }
 
 
@@ -30,18 +31,25 @@ class Config:
     project: str = None
     apiKey: str = None
     enableSoftAssert: bool = False
+    httpTimeoutInSeconds: float = 360
+
+    def __setattr__(self, name, value):
+        if name == 'apiUrl' and isinstance(value, str):
+            value = value.rstrip('/')
+        if name == 'httpTimeoutInSeconds' and not _is_seconds(value):
+            raise InvalidConfigurationError(
+                name, f'{name} ({ENV_MAPPING[name]}) must be a non-negative number of seconds, got {value!r}.')
+        super().__setattr__(name, value)
 
     @staticmethod
     def default(
         path: typing.Union[str, pathlib.Path] = None,
         environment: dict = None,
     ):
-        default_path = os.path.join(determine_config_path(), DEFAULT_PATH)
-
         if path:
             cfg = Config.from_file(path)
-        elif os.path.isfile(default_path):
-            cfg = Config.from_file(default_path)
+        elif os.path.isfile(DEFAULT_PATH):
+            cfg = Config.from_file(DEFAULT_PATH)
         else:
             cfg = Config()
 
@@ -65,16 +73,22 @@ class Config:
         return cfg
 
     def apply_environment(self, environment: dict = None):
+        environment = os.environ if environment is None else environment
         fields = {f.name:f.type for f in dataclasses.fields(self)}
         for field_name, env_name in ENV_MAPPING.items():
-            val = environment.get(env_name, None)
+            val = environment.get(env_name)
             field_type = fields[field_name]
-            if val is None:
+            if not val:
                 continue
             if field_type is str:
                 pass
             elif field_type is bool:
                 val = val.lower() in ('true', '1')
+            elif field_type is float:
+                try:
+                    val = float(val)
+                except ValueError:
+                    pass
             else:
                 raise Exception('Unsupported type')
             setattr(self, field_name, val)
@@ -82,7 +96,7 @@ class Config:
     @staticmethod
     def from_environment(environment: dict = None):
         cfg = Config()
-        cfg.apply_environment(environment)
+        cfg.apply_environment(environment or os.environ)
         return cfg
 
     def check_complete(self):
@@ -91,15 +105,6 @@ class Config:
                 raise MissingConfigurationError(field_name, f'{field_name} is not specified.')
 
 
-def determine_config_path():
-    """
-    Determines the absolute path to the directory the current project is in:
-    1. If in a script, then use the directory the script is in.
-    2. If in a REPL, then use PWD.
-    3. If running an installed module (ours or 3rd-party), then use PWD.
-    """
-    main_module = sys.modules['__main__'].__dict__
-    is_script = '__file__' in main_module and main_module['__spec__'] is None
-    rel_dir = os.path.dirname(main_module['__file__']) if is_script else os.curdir
-    abs_dir = os.path.abspath(rel_dir)
-    return abs_dir
+def _is_seconds(value) -> bool:
+    return value is None or (
+        isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value >= 0)

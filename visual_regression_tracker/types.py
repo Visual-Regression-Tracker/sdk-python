@@ -1,5 +1,6 @@
 import dataclasses
 import enum
+import logging
 import typing
 import dacite
 
@@ -31,9 +32,18 @@ class Build:
 
 
 class TestRunStatus(enum.Enum):
+    FAILED = 'failed'
     NEW = 'new'
     OK = 'ok'
     UNRESOLVED = 'unresolved'
+    APPROVED = 'approved'
+    AUTO_APPROVED = 'autoApproved'
+    UNKNOWN = 'unknown'
+
+    @classmethod
+    def _missing_(cls, value):
+        logging.getLogger(__name__).warning('Unknown test run status: %r', value)
+        return cls.UNKNOWN
 
 
 @dataclasses.dataclass
@@ -65,9 +75,9 @@ class TestRunResult:
         :param api_url: URL to use in image urls
         """
         self.testRunResponse = test_run_response
-        self.imageUrl = f'{api_url}/{test_run_response.imageName}'
-        self.diffUrl = test_run_response.diffName and f'{api_url}/{test_run_response.diffName}'
-        self.baselineUrl = test_run_response.baselineName and f'{api_url}/{test_run_response.baselineName}'
+        self.imageUrl = f'{api_url}/images/{test_run_response.imageName}'
+        self.diffUrl = test_run_response.diffName and f'{api_url}/images/{test_run_response.diffName}'
+        self.baselineUrl = test_run_response.baselineName and f'{api_url}/images/{test_run_response.baselineName}'
 
 
 def _to_dict(obj):
@@ -79,5 +89,5 @@ def _to_dict(obj):
 
 
 def _from_dict(data, clazz):
-    obj = dacite.from_dict(clazz, data)
+    obj = dacite.from_dict(clazz, data, dacite.Config(cast=[enum.Enum]))
     return obj

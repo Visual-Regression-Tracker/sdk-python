@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "visual_regression_tracker"
+version = "5.0.0"
+description = "Open source, self hosted solution for visual testing and managing results of visual testing."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.32.4",
+    "dacite>=1.9",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.optional-dependencies]
+playwright = ["playwright>=1.50"]
+
+[project.urls]
+Homepage = "https://github.com/Visual-Regression-Tracker/Visual-Regression-Tracker"
+Source = "https://github.com/Visual-Regression-Tracker/sdk-python"
+Issues = "https://github.com/Visual-Regression-Tracker/sdk-python/issues"
+
+[tool.setuptools]
+packages = ["visual_regression_tracker"]
+
+[tool.pytest.ini_options]
+python_classes = "NoThanks"
+junit_family = "xunit2"
+asyncio_default_fixture_loop_scope = "function"
