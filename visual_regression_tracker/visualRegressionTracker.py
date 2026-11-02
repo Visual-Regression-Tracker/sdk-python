@@ -125,8 +125,10 @@ class VisualRegressionTracker:
 
 def _multipart(data: dict) -> tuple:
     path = data.pop('imagePath', None)
-    image = pathlib.Path(path).read_bytes() if path is not None else data.pop('imageBuffer')
-    filename = pathlib.Path(path).name if path is not None else 'image.png'
+    if path is None:
+        filename, image = 'image.png', data.pop('imageBuffer')
+    else:
+        filename, image = pathlib.Path(path).name, pathlib.Path(path).read_bytes()
     fields = {key: _form_value(value) for key, value in data.items()}
     return fields, (filename, image, 'image/png')
 
