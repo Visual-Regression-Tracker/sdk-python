@@ -5,7 +5,7 @@ import os.path
 import json
 import pathlib
 
-from .exceptions import MissingConfigurationError
+from .exceptions import InvalidConfigurationError, MissingConfigurationError
 from .types import _from_dict
 
 
@@ -30,7 +30,7 @@ class Config:
     project: str = None
     apiKey: str = None
     enableSoftAssert: bool = False
-    httpTimeoutInSeconds: float = 30
+    httpTimeoutInSeconds: float = 360
 
     def __setattr__(self, name, value):
         if name == 'apiUrl' and isinstance(value, str):
@@ -80,7 +80,9 @@ class Config:
             elif field_type is bool:
                 val = val.lower() in ('true', '1')
             elif field_type is float:
-                val = float(val)
+                if not val:
+                    continue
+                val = _seconds(field_name, env_name, val)
             else:
                 raise Exception('Unsupported type')
             setattr(self, field_name, val)
@@ -96,3 +98,12 @@ class Config:
             if getattr(self, field_name) is None:
                 raise MissingConfigurationError(field_name, f'{field_name} is not specified.')
 
+
+def _seconds(field_name: str, env_name: str, val: str) -> float:
+    try:
+        seconds = float(val)
+    except ValueError:
+        seconds = None
+    if seconds is None or not seconds >= 0:
+        raise InvalidConfigurationError(field_name, f'{env_name} must be a non-negative number of seconds, got {val!r}.')
+    return seconds

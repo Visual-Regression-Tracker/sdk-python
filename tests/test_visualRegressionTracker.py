@@ -4,11 +4,12 @@ import logging
 import re
 
 import pytest
+import requests
 
 from visual_regression_tracker import \
     Build, Config, IgnoreArea, VisualRegressionTracker, \
     TestRun, TestRunResponse, TestRunStatus, \
-    ServerError, TestRunError, VisualRegressionTrackerError
+    RequestError, ServerError, TestRunError, VisualRegressionTrackerError
 from visual_regression_tracker.types import \
     _to_dict
 from visual_regression_tracker.visualRegressionTracker import \
@@ -27,6 +28,7 @@ HEADERS = {
     'apiKey': CONFIG.apiKey,
     'project': CONFIG.project
 }
+TIMEOUT = (10, CONFIG.httpTimeoutInSeconds)
 
 
 @pytest.fixture
@@ -174,7 +176,7 @@ def test__start__should_start_build(vrt, mock_request):
             'project': CONFIG.project
         },
         HEADERS,
-        CONFIG.httpTimeoutInSeconds,
+        TIMEOUT,
     )
 
     assert build == Build(buildId, projectId)
@@ -191,13 +193,13 @@ def test__start__should_not_double_the_slash_after_apiUrl(mock_request):
     assert mock_request.call_args[0][0] == 'http://localhost:4200/builds'
 
 
-def test__request__treats_zero_timeout_as_none(mock_request):
+def test__request__treats_zero_timeout_as_no_read_timeout(mock_request):
     vrt = VisualRegressionTracker(dataclasses.replace(CONFIG, httpTimeoutInSeconds=0))
     mock_request.return_value = {'id': '1312', 'projectId': 'asd'}
 
     vrt.start()
 
-    assert mock_request.call_args[0][4] is None
+    assert mock_request.call_args[0][4] == (10, None)
 
 
 def test__stop__should_stop_build(vrt, mock_request, mocker):
@@ -213,7 +215,7 @@ def test__stop__should_stop_build(vrt, mock_request, mocker):
         'patch',
         {'isRunning': False},
         HEADERS,
-        CONFIG.httpTimeoutInSeconds,
+        TIMEOUT,
     )
     assert vrt.buildId is None
     assert vrt.projectId is None
@@ -302,7 +304,7 @@ def test__submitTestResults__should_submit_test_run(vrt, mock_request):
             ]
         },
         HEADERS,
-        CONFIG.httpTimeoutInSeconds,
+        TIMEOUT,
     )
 
 
@@ -324,6 +326,7 @@ def test__submitTestResults__should_throw_not_started(vrt, mocker):
 
 def mock_response(mocker, status_code, body=None, text='', reason=''):
     response = mocker.Mock()
+    response.url = 'http://vrt/builds'
     response.status_code = status_code
     response.reason = reason
     if body is None:
@@ -373,10 +376,27 @@ def test__http_request__raises_server_error_with_server_message(
 def test__http_request__raises_server_error_on_success_without_json(mocker):
     mocker.patch('requests.post', return_value=mock_response(mocker, 200, None, '<html>Sign in</html>'))
 
-    with pytest.raises(ServerError, match='not JSON: <html>Sign in</html>') as error:
+    with pytest.raises(ServerError, match='http://vrt/builds is not JSON: <html>Sign in</html>') as error:
         _http_request('url', 'post', {}, {}, 30)
 
     assert error.value.status_code == 200
+    assert error.value.__suppress_context__
+
+
+@pytest.mark.parametrize('exception', [
+    requests.exceptions.ReadTimeout('Read timed out. (read timeout=360)'),
+    requests.exceptions.ConnectionError('Failed to establish a new connection'),
+])
+def test__http_request__wraps_request_exceptions_without_headers(mocker, exception):
+    mocker.patch('requests.post', side_effect=exception)
+
+    with pytest.raises(RequestError) as error:
+        _http_request('http://vrt/test-runs', 'post', {}, {'apiKey': 'secret-key'}, (10, 360))
+
+    assert error.value.url == 'http://vrt/test-runs'
+    assert str(error.value) == f'POST http://vrt/test-runs failed: {type(exception).__name__}: {exception}'
+    assert 'secret-key' not in str(error.value)
+    assert error.value.__cause__ is None and error.value.__suppress_context__
 
 
 @pytest.mark.parametrize('status_code,body,hint', [

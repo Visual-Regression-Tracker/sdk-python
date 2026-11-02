@@ -11,7 +11,7 @@ Requires Python 3.10 or later. Image URLs in results need VRT server 5.0.10 or l
 pip install visual-regression-tracker
 
 # or, with playwright integration
-pip install visual-regression-tracker[playwright]
+pip install "visual-regression-tracker[playwright]"
 python -m playwright install
 ```
 
@@ -46,8 +46,10 @@ config = Config(
     # enableSoftAssert - Log errors instead of exceptions
     enableSoftAssert=False,
 
-    # httpTimeoutInSeconds - Timeout of each request to the server, 0 for none
-    httpTimeoutInSeconds=30,
+    # httpTimeoutInSeconds - How long to wait for the server's answer, 0 for no limit.
+    # The server compares images while answering track(); with VLM checks or a busy
+    # comparison queue that can take minutes, so keep it above 300.
+    httpTimeoutInSeconds=360,
 )
 
 vrt = VisualRegressionTracker(config)
@@ -62,7 +64,7 @@ vrt = VisualRegressionTracker(config)
     "ciBuildId":"commit_sha",
     "branchName":"develop",
     "enableSoftAssert":false,
-    "httpTimeoutInSeconds":30
+    "httpTimeoutInSeconds":360
 }
 ```
 
@@ -79,7 +81,7 @@ VRT_APIKEY="tXZVHX0EA4YQM1MGDD" \
 VRT_CIBUILDID="commit_sha" \
 VRT_BRANCHNAME="develop" \
 VRT_ENABLESOFTASSERT=true \
-VRT_HTTPTIMEOUTINSECONDS=30 \
+VRT_HTTPTIMEOUTINSECONDS=360 \
     python
 ```
 ```python
@@ -162,6 +164,9 @@ with `enableSoftAssert` it logs the error instead. `ok`, `approved` and `autoApp
 too, as in the JavaScript SDK. A status this SDK does not know becomes `TestRunStatus.UNKNOWN`.
 
 An HTTP error from the server raises `ServerError` with `status_code` and the server's `message`.
+A request that gets no answer (connection refused, connect timeout after 10 s, read timeout after
+`httpTimeoutInSeconds`) raises `RequestError` with the `url`. A read timeout on `track` does not mean
+the server dropped the test run: it may still be stored.
 
 ### Integration with Microsoft Playwright
 

@@ -6,7 +6,7 @@ from .types import \
     Build, TestRun, TestRunResponse, TestRunStatus, \
     _to_dict, _from_dict, TestRunResult
 from .exceptions import \
-    ServerError, TestRunError, VisualRegressionTrackerError
+    RequestError, ServerError, TestRunError, VisualRegressionTrackerError
 from .config import Config
 
 
@@ -38,7 +38,7 @@ class VisualRegressionTracker:
             method,
             data,
             self.headers,
-            self.config.httpTimeoutInSeconds or None,
+            (CONNECT_TIMEOUT_SECONDS, self.config.httpTimeoutInSeconds or None),
         )
 
     def start(self) -> Build:
@@ -105,15 +105,20 @@ class VisualRegressionTracker:
         return TestRunResult(result, self.config.apiUrl)
 
 
+CONNECT_TIMEOUT_SECONDS = 10
+
 _HINTS = {
     413: 'the request is larger than BODY_PARSER_JSON_LIMIT on the server; raise it or send a smaller screenshot',
     422: 'the image has more pixels than MAX_IMAGE_PIXELS on the server; raise it or send a smaller screenshot',
 }
 
 
-def _http_request(url: str, method: str, data: dict, headers: dict, timeout: float) -> dict:
+def _http_request(url: str, method: str, data: dict, headers: dict, timeout: tuple) -> dict:
     request = getattr(requests, method.lower())
-    response = request(url, json=data, headers=headers, timeout=timeout)
+    try:
+        response = request(url, json=data, headers=headers, timeout=timeout)
+    except requests.RequestException as e:
+        raise RequestError(url, f'{method.upper()} {url} failed: {type(e).__name__}: {e}') from None
     status = response.status_code
 
     if status >= 400:
@@ -124,7 +129,7 @@ def _http_request(url: str, method: str, data: dict, headers: dict, timeout: flo
     try:
         return response.json()
     except ValueError:
-        raise ServerError(status, f'response is not JSON: {response.text.strip()[:200]}')
+        raise ServerError(status, f'response from {response.url} is not JSON: {response.text.strip()[:200]}') from None
 
 
 def _error_message(response) -> str:

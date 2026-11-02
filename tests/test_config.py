@@ -4,7 +4,7 @@ import types
 
 import pytest
 
-from visual_regression_tracker import Config, MissingConfigurationError
+from visual_regression_tracker import Config, InvalidConfigurationError, MissingConfigurationError
 from visual_regression_tracker.config import ENV_MAPPING
 
 
@@ -59,8 +59,20 @@ def test_config_from_environment(config_env):
     assert cfg.httpTimeoutInSeconds == 7.5
 
 
-def test_config_timeout_defaults_to_30_seconds():
-    assert Config().httpTimeoutInSeconds == 30
+def test_config_timeout_defaults_to_360_seconds():
+    assert Config().httpTimeoutInSeconds == 360
+
+
+def test_config_treats_empty_timeout_variable_as_unset():
+    assert Config.from_environment({'VRT_HTTPTIMEOUTINSECONDS': ''}).httpTimeoutInSeconds == 360
+
+
+@pytest.mark.parametrize('value', ['-1', 'soon'])
+def test_config_rejects_invalid_timeout_variable(value):
+    with pytest.raises(InvalidConfigurationError, match='VRT_HTTPTIMEOUTINSECONDS') as error:
+        Config.from_environment({'VRT_HTTPTIMEOUTINSECONDS': value})
+
+    assert error.value.field == 'httpTimeoutInSeconds'
 
 
 def config_from_file(tmp_path, data):
@@ -123,7 +135,7 @@ def test_default_uses_defaults(config_env, mocker):
     cfg = Config.default(environment=config_env)
     assert cfg.apiUrl == Config.apiUrl
     assert cfg.ciBuildId is None
-    assert cfg.httpTimeoutInSeconds == 30
+    assert cfg.httpTimeoutInSeconds == 360
 
 
 def test_default_prefers_environment(config_env, config_file):
