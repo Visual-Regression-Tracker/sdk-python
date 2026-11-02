@@ -324,11 +324,12 @@ def test__submitTestResults__should_throw_not_started(vrt, mocker):
         vrt._submitTestResult(testRun)
 
 
-def mock_response(mocker, status_code, body=None, text='', reason=''):
+def mock_response(mocker, status_code, body=None, text='', reason='', headers=None):
     response = mocker.Mock()
     response.url = 'http://vrt/builds'
     response.status_code = status_code
     response.reason = reason
+    response.headers = requests.structures.CaseInsensitiveDict(headers or {})
     if body is None:
         response.text = text
         response.json.side_effect = ValueError('Expecting value')
@@ -399,14 +400,192 @@ def test__http_request__wraps_request_exceptions_without_headers(mocker, excepti
     assert error.value.__cause__ is None and error.value.__suppress_context__
 
 
-@pytest.mark.parametrize('status_code,body,hint', [
-    (413, None, 'BODY_PARSER_JSON_LIMIT'),
-    (422, {'message': 'Image is 20000x20000 (400000000 pixels), above MAX_IMAGE_PIXELS=100000000'}, 'MAX_IMAGE_PIXELS'),
+@pytest.mark.parametrize('url,status_code,body,hint', [
+    ('http://vrt/test-runs', 413, None, 'imagePath or imageBuffer'),
+    ('http://vrt/test-runs', 413, None, 'BODY_PARSER_JSON_LIMIT'),
+    ('http://vrt/test-runs/multipart', 413, None, 'MULTIPART_FILE_SIZE_LIMIT'),
+    ('http://vrt/test-runs', 422,
+     {'message': 'Image is 20000x20000 (400000000 pixels), above MAX_IMAGE_PIXELS=100000000'}, 'MAX_IMAGE_PIXELS'),
 ])
-def test__http_request__adds_hint_for_image_limits(mocker, status_code, body, hint):
+def test__http_request__adds_hint_for_image_limits(mocker, url, status_code, body, hint):
     mocker.patch('requests.post', return_value=mock_response(mocker, status_code, body, 'request entity too large'))
 
     with pytest.raises(ServerError, match=re.escape(hint)) as error:
-        _http_request('url', 'post', {}, {}, 30)
+        _http_request(url, 'post', {}, {}, 30)
 
     assert error.value.status_code == status_code
+
+
+def started_vrt(config=CONFIG):
+    vrt = VisualRegressionTracker(config)
+    vrt.buildId = '1312'
+    vrt.projectId = 'asd'
+    return vrt
+
+
+def test__submitTestResults__sends_sourceBranch_customTags_comment_and_merge(mock_request):
+    vrt = started_vrt(dataclasses.replace(CONFIG, sourceBranch='feature'))
+    mock_request.return_value = {'status': 'ok'}
+
+    vrt._submitTestResult(TestRun(
+        name='name', imageBase64='image', customTags='tag1,tag2', comment='why', merge=True))
+
+    mock_request.assert_called_once_with(
+        f'{CONFIG.apiUrl}/test-runs',
+        'post',
+        {
+            'name': 'name',
+            'imageBase64': 'image',
+            'customTags': 'tag1,tag2',
+            'comment': 'why',
+            'merge': True,
+            'buildId': '1312',
+            'projectId': 'asd',
+            'branchName': CONFIG.branchName,
+            'sourceBranch': 'feature',
+        },
+        HEADERS,
+        TIMEOUT,
+    )
+
+
+def test__submitTestResults__leaves_out_unset_sourceBranch(mock_request):
+    mock_request.return_value = {'status': 'ok'}
+
+    started_vrt()._submitTestResult(TestRun(name='name', imageBase64='image'))
+
+    assert 'sourceBranch' not in mock_request.call_args[0][2]
+
+
+def test__submitTestResults__sends_imageBuffer_as_multipart(mock_request):
+    vrt = started_vrt(dataclasses.replace(CONFIG, sourceBranch='feature'))
+    mock_request.return_value = {'status': 'ok', 'url': 'url'}
+
+    result = vrt._submitTestResult(TestRun(
+        name='name',
+        imageBuffer=b'png',
+        os='os',
+        diffTollerancePercent=1.5,
+        ignoreAreas=[IgnoreArea(1, 2, 3, 4)],
+        customTags='tag',
+        comment='why',
+        merge=False,
+    ))
+
+    assert result == TestRunResponse(status=TestRunStatus.OK, url='url')
+    mock_request.assert_called_once_with(
+        f'{CONFIG.apiUrl}/test-runs/multipart',
+        'post',
+        {
+            'name': 'name',
+            'os': 'os',
+            'diffTollerancePercent': '1.5',
+            'ignoreAreas': '[{"x": 1, "y": 2, "width": 3, "height": 4}]',
+            'customTags': 'tag',
+            'comment': 'why',
+            'merge': 'false',
+            'buildId': '1312',
+            'projectId': 'asd',
+            'branchName': CONFIG.branchName,
+            'sourceBranch': 'feature',
+        },
+        HEADERS,
+        TIMEOUT,
+        files={'image': ('image.png', b'png', 'image/png')},
+    )
+
+
+def test__submitTestResults__sends_imagePath_as_multipart(mock_request, tmp_path):
+    image = tmp_path / 'home page.png'
+    image.write_bytes(b'png from file')
+    mock_request.return_value = {'status': 'ok'}
+
+    started_vrt()._submitTestResult(TestRun(name='name', imagePath=image))
+
+    assert mock_request.call_args[0][0] == f'{CONFIG.apiUrl}/test-runs/multipart'
+    assert mock_request.call_args[1]['files'] == {'image': ('home page.png', b'png from file', 'image/png')}
+    assert 'imagePath' not in mock_request.call_args[0][2]
+
+
+@pytest.mark.parametrize('images', [
+    {'imageBase64': 'image', 'imageBuffer': b'png'},
+    {'imageBase64': 'image', 'imagePath': 'image.png'},
+    {'imagePath': 'image.png', 'imageBuffer': b'png'},
+])
+def test__submitTestResults__rejects_more_than_one_image(mock_request, images):
+    with pytest.raises(ValueError, match='only one of imageBase64, imagePath and imageBuffer'):
+        started_vrt()._submitTestResult(TestRun(name='name', **images))
+
+    mock_request.assert_not_called()
+
+
+def test__http_request__sends_files_as_multipart(mocker):
+    post = mocker.patch('requests.post', return_value=mock_response(mocker, 200, {'a': 'b'}))
+    files = {'image': ('image.png', b'png', 'image/png')}
+
+    _http_request('url', 'post', {'name': 'n'}, {'apiKey': 'k'}, 7, files=files)
+
+    post.assert_called_once_with('url', data={'name': 'n'}, files=files, headers={'apiKey': 'k'}, timeout=7)
+
+
+@pytest.fixture
+def sleep(mocker):
+    return mocker.patch('visual_regression_tracker.visualRegressionTracker.time.sleep')
+
+
+def test__http_request__retries_503_after_retry_after_seconds(mocker, sleep):
+    post = mocker.patch('requests.post', side_effect=[
+        mock_response(mocker, 503, {'message': 'Image diff queue is full'}, headers={'Retry-After': '5'}),
+        mock_response(mocker, 200, {'a': 'b'}),
+    ])
+
+    assert _http_request('url', 'post', {}, {}, 30) == {'a': 'b'}
+
+    assert post.call_count == 2
+    sleep.assert_called_once_with(5)
+
+
+def test__http_request__reads_retry_after_as_http_date(mocker, sleep):
+    mocker.patch('visual_regression_tracker.visualRegressionTracker.time.time',
+                 return_value=1793664000)  # Tue, 03 Nov 2026 00:00:00 GMT
+    mocker.patch('requests.post', side_effect=[
+        mock_response(mocker, 503, None, headers={'Retry-After': 'Tue, 03 Nov 2026 00:00:07 GMT'}),
+        mock_response(mocker, 200, {}),
+    ])
+
+    _http_request('url', 'post', {}, {}, 30)
+
+    sleep.assert_called_once_with(7)
+
+
+def test__http_request__gives_up_after_3_retries(mocker, sleep):
+    busy = mock_response(mocker, 503, {'message': 'Image diff queue is full'}, headers={'Retry-After': '5'})
+    post = mocker.patch('requests.post', return_value=busy)
+
+    with pytest.raises(ServerError, match='retried 3 times') as error:
+        _http_request('url', 'post', {}, {}, 30)
+
+    assert post.call_count == 4
+    assert sleep.call_count == 3
+    assert error.value.status_code == 503
+
+
+@pytest.mark.parametrize('headers', [{}, {'Retry-After': '61'}, {'Retry-After': '-1'}, {'Retry-After': 'soon'}])
+def test__http_request__does_not_retry_503_without_a_usable_retry_after(mocker, sleep, headers):
+    post = mocker.patch('requests.post', return_value=mock_response(mocker, 503, None, reason='Service Unavailable',
+                                                                    headers=headers))
+
+    with pytest.raises(ServerError):
+        _http_request('url', 'post', {}, {}, 30)
+
+    assert post.call_count == 1
+    sleep.assert_not_called()
+
+
+def test__http_request__does_not_retry_other_errors_with_retry_after(mocker, sleep):
+    post = mocker.patch('requests.post', return_value=mock_response(mocker, 429, None, headers={'Retry-After': '1'}))
+
+    with pytest.raises(ServerError):
+        _http_request('url', 'post', {}, {}, 30)
+
+    assert post.call_count == 1
