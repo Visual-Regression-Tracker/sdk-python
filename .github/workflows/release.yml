@@ -37,11 +37,12 @@ jobs:
         id: semantic-release
         env:
           GITHUB_TOKEN: ${{ github.token }}
+        # Preset 10+ needs conventional-changelog-writer 9; semantic-release 25 bundles writer 8.
         run: >
           npx --yes
           -p semantic-release@25.0.9
           -p @semantic-release/exec@7.1.0
-          -p conventional-changelog-conventionalcommits@10.4.1
+          -p conventional-changelog-conventionalcommits@9.3.1
           semantic-release
       - uses: actions/upload-artifact@v7
         if: steps.semantic-release.outputs.version
