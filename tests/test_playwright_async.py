@@ -61,9 +61,10 @@ async def test_pvrt_trackPageAsync__throws_if_no_page(pvrt):
 
 @pytest.mark.asyncio(loop_scope='session')
 async def test_pvrt_trackPageAsync__default_options(pvrt, async_page, async_browserType):
-    await pvrt.trackPageAsync(async_page, 'image name')
+    result = await pvrt.trackPageAsync(async_page, 'image name')
 
     pvrt.track.assert_called_once()
+    assert result is pvrt.track.return_value
 
     testRun = pvrt.track.call_args[0][0]
     assert testRun.name == 'image name'
@@ -125,9 +126,10 @@ async def test_pvrt_trackElementHandleAsync__throws_if_no_page(pvrt):
 
 @pytest.mark.asyncio(loop_scope='session')
 async def test_pvrt_trackElementHandleAsync__default_options(pvrt, async_elementHandle, async_browserType):
-    await pvrt.trackElementHandleAsync(async_elementHandle, 'image name')
+    result = await pvrt.trackElementHandleAsync(async_elementHandle, 'image name')
 
     pvrt.track.assert_called_once()
+    assert result is pvrt.track.return_value
 
     testRun = pvrt.track.call_args[0][0]
     assert testRun.name == 'image name'

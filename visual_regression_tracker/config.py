@@ -4,7 +4,6 @@ import os
 import os.path
 import json
 import pathlib
-import sys
 
 from .exceptions import MissingConfigurationError
 from .types import _from_dict
@@ -19,6 +18,7 @@ ENV_MAPPING = {
     'project': 'VRT_PROJECT',
     'apiKey': 'VRT_APIKEY',
     'enableSoftAssert': 'VRT_ENABLESOFTASSERT',
+    'httpTimeoutInSeconds': 'VRT_HTTPTIMEOUTINSECONDS',
 }
 
 
@@ -30,18 +30,22 @@ class Config:
     project: str = None
     apiKey: str = None
     enableSoftAssert: bool = False
+    httpTimeoutInSeconds: float = 30
+
+    def __setattr__(self, name, value):
+        if name == 'apiUrl' and isinstance(value, str):
+            value = value.rstrip('/')
+        super().__setattr__(name, value)
 
     @staticmethod
     def default(
         path: typing.Union[str, pathlib.Path] = None,
         environment: dict = None,
     ):
-        default_path = os.path.join(determine_config_path(), DEFAULT_PATH)
-
         if path:
             cfg = Config.from_file(path)
-        elif os.path.isfile(default_path):
-            cfg = Config.from_file(default_path)
+        elif os.path.isfile(DEFAULT_PATH):
+            cfg = Config.from_file(DEFAULT_PATH)
         else:
             cfg = Config()
 
@@ -75,6 +79,8 @@ class Config:
                 pass
             elif field_type is bool:
                 val = val.lower() in ('true', '1')
+            elif field_type is float:
+                val = float(val)
             else:
                 raise Exception('Unsupported type')
             setattr(self, field_name, val)
@@ -90,16 +96,3 @@ class Config:
             if getattr(self, field_name) is None:
                 raise MissingConfigurationError(field_name, f'{field_name} is not specified.')
 
-
-def determine_config_path():
-    """
-    Determines the absolute path to the directory the current project is in:
-    1. If in a script, then use the directory the script is in.
-    2. If in a REPL, then use PWD.
-    3. If running an installed module (ours or 3rd-party), then use PWD.
-    """
-    main_module = sys.modules['__main__'].__dict__
-    is_script = '__file__' in main_module and main_module['__spec__'] is None
-    rel_dir = os.path.dirname(main_module['__file__']) if is_script else os.curdir
-    abs_dir = os.path.abspath(rel_dir)
-    return abs_dir

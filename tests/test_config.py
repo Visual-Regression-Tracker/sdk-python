@@ -1,12 +1,11 @@
 import json
-import os
-import pytest
-import pathlib
-import subprocess
 import sys
+import types
+
+import pytest
 
 from visual_regression_tracker import Config, MissingConfigurationError
-from visual_regression_tracker.config import determine_config_path, ENV_MAPPING
+from visual_regression_tracker.config import ENV_MAPPING
 
 
 @pytest.fixture
@@ -19,6 +18,7 @@ def config_file(tmpdir):
         'project': 'file project',
         'apiKey': 'file api key',
         'enableSoftAssert': True,
+        'httpTimeoutInSeconds': 5,
     }))
     yield p
 
@@ -32,6 +32,7 @@ def config_env():
         'VRT_PROJECT': 'env project',
         'VRT_APIKEY': 'env api key',
         'VRT_ENABLESOFTASSERT': 'False',
+        'VRT_HTTPTIMEOUTINSECONDS': '7.5',
     }
     yield env
 
@@ -44,6 +45,7 @@ def test_config_from_file(config_file):
     assert cfg.project == 'file project'
     assert cfg.apiKey == 'file api key'
     assert cfg.enableSoftAssert == True
+    assert cfg.httpTimeoutInSeconds == 5
 
 
 def test_config_from_environment(config_env):
@@ -54,6 +56,25 @@ def test_config_from_environment(config_env):
     assert cfg.project == 'env project'
     assert cfg.apiKey == 'env api key'
     assert cfg.enableSoftAssert == False
+    assert cfg.httpTimeoutInSeconds == 7.5
+
+
+def test_config_timeout_defaults_to_30_seconds():
+    assert Config().httpTimeoutInSeconds == 30
+
+
+@pytest.mark.parametrize('make_config', [
+    lambda: Config(apiUrl='http://vrt:4200/'),
+    lambda: Config.from_environment({'VRT_APIURL': 'http://vrt:4200/'}),
+])
+def test_config_strips_trailing_slash_from_apiUrl(make_config):
+    assert make_config().apiUrl == 'http://vrt:4200'
+
+
+def test_config_from_file_strips_trailing_slash_from_apiUrl(tmp_path):
+    path = tmp_path / 'vrt.json'
+    path.write_text(json.dumps({'apiUrl': 'http://vrt:4200/'}))
+    assert Config.from_file(path).apiUrl == 'http://vrt:4200'
 
 
 def test_default_uses_path(config_file):
@@ -96,10 +117,12 @@ def test_default_uses_defaults(config_env, mocker):
     mocker.patch('os.path.isfile').return_value = False
     del config_env['VRT_CIBUILDID']
     del config_env['VRT_APIURL']
+    del config_env['VRT_HTTPTIMEOUTINSECONDS']
 
     cfg = Config.default(environment=config_env)
     assert cfg.apiUrl == Config.apiUrl
     assert cfg.ciBuildId is None
+    assert cfg.httpTimeoutInSeconds == 30
 
 
 def test_default_prefers_environment(config_env, config_file):
@@ -123,36 +146,19 @@ def test_default_raises_on_missing_settings(mocker, config_env, missing_field):
         Config.default(environment=config_env)
 
 
-def test_determine_config_path_from_pytest():
-    current_file = pathlib.Path(__file__)
-    sdk_python_dir = str(current_file.parent.parent)
-    assert determine_config_path() == sdk_python_dir
+def test_default_reads_vrt_json_from_working_directory_when_run_by_a_script(tmp_path, monkeypatch):
+    (tmp_path / 'vrt.json').write_text(json.dumps({
+        'apiUrl': 'http://vrt:4200',
+        'branchName': 'develop',
+        'project': 'project',
+        'apiKey': 'key',
+    }))
+    script = types.ModuleType('__main__')
+    script.__file__ = '/venv/bin/pytest'
+    script.__spec__ = None
+    monkeypatch.setitem(sys.modules, '__main__', script)
+    monkeypatch.chdir(tmp_path)
 
+    cfg = Config.default(environment={})
 
-@pytest.fixture
-def change_current_dir(tmpdir):
-    olddir = os.curdir
-    os.chdir(os.path.expanduser('~'))
-    yield os.path.abspath(os.curdir)
-    os.chdir(olddir)
-
-
-def test_detemine_config_path_from_repl(change_current_dir):
-    current_file = pathlib.Path(__file__)
-    sdk_python_dir = str(current_file.parent.parent)
-
-    output = subprocess.check_output(
-        sys.executable,
-        encoding='ascii',
-        input=f'''
-import sys
-sys.path.insert(0, '{sdk_python_dir}')
-
-from visual_regression_tracker.config import determine_config_path
-print(determine_config_path())
-quit()
-'''
-    )
-    result = output.strip()
-    assert result == change_current_dir
-
+    assert cfg.project == 'project'

@@ -85,9 +85,9 @@ def test__TestRunResult_all_images():
     result = TestRunResult(test_run_response, "http://localhost")
 
     assert result.testRunResponse == test_run_response
-    assert result.imageUrl == "http://localhost/imageName"
-    assert result.diffUrl == "http://localhost/diffName"
-    assert result.baselineUrl == "http://localhost/baselineName"
+    assert result.imageUrl == "http://localhost/images/imageName"
+    assert result.diffUrl == "http://localhost/images/diffName"
+    assert result.baselineUrl == "http://localhost/images/baselineName"
 
 
 def test__TestRunResult_only_required_images():
@@ -100,6 +100,16 @@ def test__TestRunResult_only_required_images():
     result = TestRunResult(test_run_response, "http://localhost")
 
     assert result.testRunResponse == test_run_response
-    assert result.imageUrl == "http://localhost/imageName"
+    assert result.imageUrl == "http://localhost/images/imageName"
     assert result.diffUrl is None
     assert result.baselineUrl is None
+
+
+@pytest.mark.parametrize('value', ['failed', 'new', 'ok', 'unresolved', 'approved', 'autoApproved'])
+def test__TestRunStatus_knows_every_server_status(value):
+    assert TestRunStatus(value).value == value
+
+
+def test__TestRunStatus_maps_unknown_status_to_UNKNOWN(caplog):
+    assert TestRunStatus('someFutureStatus') is TestRunStatus.UNKNOWN
+    assert 'someFutureStatus' in caplog.text

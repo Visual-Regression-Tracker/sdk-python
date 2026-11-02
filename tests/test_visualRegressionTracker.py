@@ -1,11 +1,10 @@
-import json
 import logging
 import re
 
 import pytest
 
 from visual_regression_tracker import \
-    Config, IgnoreArea, VisualRegressionTracker, \
+    Build, Config, IgnoreArea, VisualRegressionTracker, \
     TestRun, TestRunResponse, TestRunStatus, \
     ServerError, TestRunError, VisualRegressionTrackerError
 from visual_regression_tracker.types import \
@@ -20,7 +19,12 @@ CONFIG = Config(
     project='Default project',
     apiKey='CPKVK4JNK24NVNPNGVFQ853HXXEG',
     enableSoftAssert=False,
+    httpTimeoutInSeconds=12,
 )
+HEADERS = {
+    'apiKey': CONFIG.apiKey,
+    'project': CONFIG.project
+}
 
 
 @pytest.fixture
@@ -75,9 +79,34 @@ def test__track__should_track_success(vrt, mocker):
 
     vrt._submitTestResult.assert_called_once_with(test_run)
     assert test_run_result.testRunResponse == test_run_response
-    assert test_run_result.imageUrl == f'{CONFIG.apiUrl}/{test_run_response.imageName}'
-    assert test_run_result.diffUrl == f'{CONFIG.apiUrl}/{test_run_response.diffName}'
-    assert test_run_result.baselineUrl == f'{CONFIG.apiUrl}/{test_run_response.baselineName}'
+    assert test_run_result.imageUrl == f'{CONFIG.apiUrl}/images/{test_run_response.imageName}'
+    assert test_run_result.diffUrl == f'{CONFIG.apiUrl}/images/{test_run_response.diffName}'
+    assert test_run_result.baselineUrl == f'{CONFIG.apiUrl}/images/{test_run_response.baselineName}'
+
+
+@pytest.mark.parametrize('status', [
+    TestRunStatus.OK,
+    TestRunStatus.APPROVED,
+    TestRunStatus.AUTO_APPROVED,
+    TestRunStatus.FAILED,
+    TestRunStatus.UNKNOWN,
+])
+def test__track__should_pass_statuses_other_than_new_and_unresolved(status, vrt, mocker, caplog):
+    vrt._submitTestResult = mocker.Mock(return_value=TestRunResponse(url='url', status=status, imageName='imageName'))
+
+    vrt.track(TestRun())
+
+    assert caplog.record_tuples == []
+
+
+def test__track__should_accept_autoApproved_from_server(vrt, mock_request):
+    vrt.buildId = '1312'
+    vrt.projectId = 'asd'
+    mock_request.return_value = {'url': 'url', 'status': 'autoApproved', 'imageName': 'imageName'}
+
+    result = vrt.track(TestRun(name='name'))
+
+    assert result.testRunResponse.status == TestRunStatus.AUTO_APPROVED
 
 
 track_test_data = [
@@ -132,7 +161,7 @@ def test__start__should_start_build(vrt, mock_request):
     projectId = 'asd'
     mock_request.return_value = {'id': buildId, 'projectId': projectId}
 
-    vrt.start()
+    build = vrt.start()
 
     mock_request.assert_called_once_with(
         f'{CONFIG.apiUrl}/builds',
@@ -142,14 +171,22 @@ def test__start__should_start_build(vrt, mock_request):
             'branchName': CONFIG.branchName,
             'project': CONFIG.project
         },
-        {
-            'apiKey': CONFIG.apiKey,
-            'project': CONFIG.project
-        },
+        HEADERS,
+        CONFIG.httpTimeoutInSeconds,
     )
 
+    assert build == Build(buildId, projectId)
     assert vrt.buildId == buildId
     assert vrt.projectId == projectId
+
+
+def test__start__should_not_double_the_slash_after_apiUrl(mock_request):
+    vrt = VisualRegressionTracker(Config(**{**vars(CONFIG), 'apiUrl': 'http://localhost:4200/'}))
+    mock_request.return_value = {'id': '1312', 'projectId': 'asd'}
+
+    vrt.start()
+
+    assert mock_request.call_args[0][0] == 'http://localhost:4200/builds'
 
 
 def test__stop__should_stop_build(vrt, mock_request, mocker):
@@ -163,11 +200,9 @@ def test__stop__should_stop_build(vrt, mock_request, mocker):
     mock_request.assert_called_once_with(
         f'{CONFIG.apiUrl}/builds/{buildId}',
         'patch',
-        data={'isRunning': False},
-        headers={
-            'apiKey': CONFIG.apiKey,
-            'project': CONFIG.project
-        },
+        {'isRunning': False},
+        HEADERS,
+        CONFIG.httpTimeoutInSeconds,
     )
     assert vrt.buildId is None
     assert vrt.projectId is None
@@ -255,10 +290,8 @@ def test__submitTestResults__should_submit_test_run(vrt, mock_request):
                 }
             ]
         },
-        {
-            'apiKey': CONFIG.apiKey,
-            'project': CONFIG.project
-        },
+        HEADERS,
+        CONFIG.httpTimeoutInSeconds,
     )
 
 
@@ -278,36 +311,60 @@ def test__submitTestResults__should_throw_not_started(vrt, mocker):
         vrt._submitTestResult(testRun)
 
 
+def mock_response(mocker, status_code, body=None, text='', reason=''):
+    response = mocker.Mock()
+    response.status_code = status_code
+    response.text = text
+    response.reason = reason
+    if body is None:
+        response.json.side_effect = ValueError('Expecting value')
+    else:
+        response.json.return_value = body
+    return response
+
+
 def test__http_request__success(mocker):
     expected = {'a': 'b', 'c': 'd'}
+    post = mocker.patch('requests.post', return_value=mock_response(mocker, 200, expected))
 
-    post = mocker.patch('requests.post')
-    response = post.return_value = mocker.Mock()
-    response.status_code = 200
-    response.json.return_value = expected
+    actual = _http_request('url', 'post', {'1': 2}, {2: '3'}, 7)
 
-    actual = _http_request('url', 'post', {'1': 2}, {2: '3'})
-
-    post.assert_called_once_with('url', json={'1': 2}, headers={2: '3'})
+    post.assert_called_once_with('url', json={'1': 2}, headers={2: '3'}, timeout=7)
     assert actual == expected
 
 
-@pytest.mark.parametrize('status_code,response_body,expected_match', [
-    (401, {}, 'Unauthorized'),
-    (403, {}, 'Api key not authenticated'),
-    (404, {}, 'Project not found'),
-    (500, '{"message": "exception message"}', json.dumps(
-        '{"message": "exception message"}', indent=2)),
+@pytest.mark.parametrize('status_code,body,text,reason,expected_message', [
+    (401, {'statusCode': 401, 'message': 'Unauthorized'}, '', '', 'Unauthorized'),
+    (403, {'message': 'You do not have permission to perform this operation.'}, '', '',
+     'You do not have permission to perform this operation.'),
+    (404, {'statusCode': 404, 'path': '/builds/1', 'name': 'NotFoundException', 'message': 'Build not found'}, '', '',
+     'Build not found'),
+    (400, {'statusCode': 400, 'message': ['name must be a string', 'branchName must be a string']}, '', '',
+     'name must be a string, branchName must be a string'),
+    (502, None, '<html>Bad Gateway</html>', 'Bad Gateway', '<html>Bad Gateway</html>'),
+    (503, {}, '', 'Service Unavailable', 'Service Unavailable'),
+    (500, {'error': 'no message field'}, '{"error": "no message field"}', '', '{"error": "no message field"}'),
 ])
-def test__http_request__maps_status_code(
-        mocker, status_code, response_body, expected_match):
-    post = mocker.patch('requests.post')
-    response = post.return_value = mocker.Mock()
-    response.status_code = status_code
-    response.json = mocker.Mock(return_value=response_body)
-    response.raise_for_status.side_effect = Exception('oh no')
+def test__http_request__raises_server_error_with_server_message(
+        mocker, status_code, body, text, reason, expected_message):
+    mocker.patch('requests.post', return_value=mock_response(mocker, status_code, body, text, reason))
 
-    with pytest.raises(ServerError, match=re.escape(expected_match)):
-        _http_request('url', 'post', {'1': 2}, {2: '3'})
+    with pytest.raises(ServerError) as error:
+        _http_request('url', 'post', {}, {}, 30)
 
-    post.assert_called_once_with('url', json={'1': 2}, headers={2: '3'})
+    assert error.value.status_code == status_code
+    assert error.value.message == expected_message
+    assert str(error.value) == f'HTTP {status_code}: {expected_message}'
+
+
+@pytest.mark.parametrize('status_code,body,hint', [
+    (413, None, 'BODY_PARSER_JSON_LIMIT'),
+    (422, {'message': 'Image is 20000x20000 (400000000 pixels), above MAX_IMAGE_PIXELS=100000000'}, 'MAX_IMAGE_PIXELS'),
+])
+def test__http_request__adds_hint_for_image_limits(mocker, status_code, body, hint):
+    mocker.patch('requests.post', return_value=mock_response(mocker, status_code, body, 'request entity too large'))
+
+    with pytest.raises(ServerError, match=re.escape(hint)) as error:
+        _http_request('url', 'post', {}, {}, 30)
+
+    assert error.value.status_code == status_code

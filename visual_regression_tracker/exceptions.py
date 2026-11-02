@@ -8,11 +8,12 @@ class VisualRegressionTrackerError(Exception):
 
 
 class ServerError(VisualRegressionTrackerError):
-    """An error occurred on the VisualRegressionTracker server."""
+    """The VisualRegressionTracker server answered with an HTTP error."""
 
-    def __init__(self, *args):
-        """Initialises ServerError from server response."""
-        super(ServerError, self).__init__(*args)
+    def __init__(self, status_code: int, message: str):
+        self.status_code = status_code
+        self.message = message
+        super(ServerError, self).__init__(f'HTTP {status_code}: {message}')
 
 
 class TestRunError(VisualRegressionTrackerError):

@@ -1,6 +1,8 @@
 import pytest
 import base64
 import binascii
+import subprocess
+import sys
 import visual_regression_tracker
 playwright = pytest.importorskip('playwright')
 import visual_regression_tracker.playwright
@@ -22,6 +24,13 @@ def pvrt(sync_browserType, mocker):
     mocker.patch.object(visual_regression_tracker.VisualRegressionTracker, 'stop')
     pvrt = visual_regression_tracker.playwright.PlaywrightVisualRegressionTracker(sync_browserType, CONFIG)
     return pvrt
+
+
+def test_playwright_module_imports_without_typing_extensions():
+    subprocess.run([
+        sys.executable, '-c',
+        "import sys; sys.modules['typing_extensions'] = None; import visual_regression_tracker.playwright",
+    ], check=True)
 
 
 def test_pvrt_extends_vrt(sync_browserType):
@@ -78,9 +87,10 @@ def sync_page(sync_browserType):
 
 
 def test_pvrt_trackPage__default_options(pvrt, sync_page, sync_browserType):
-    pvrt.trackPage(sync_page, 'image name')
+    result = pvrt.trackPage(sync_page, 'image name')
 
     pvrt.track.assert_called_once()
+    assert result is pvrt.track.return_value
 
     testRun = pvrt.track.call_args[0][0]
     assert testRun.name == 'image name'
@@ -139,9 +149,10 @@ def test_pvrt_trackElementHandle__throws_if_no_page(pvrt):
 
 
 def test_pvrt_trackElementHandle__default_options(pvrt, sync_elementHandle, sync_browserType):
-    pvrt.trackElementHandle(sync_elementHandle, 'image name')
+    result = pvrt.trackElementHandle(sync_elementHandle, 'image name')
 
     pvrt.track.assert_called_once()
+    assert result is pvrt.track.return_value
 
     testRun = pvrt.track.call_args[0][0]
     assert testRun.name == 'image name'
