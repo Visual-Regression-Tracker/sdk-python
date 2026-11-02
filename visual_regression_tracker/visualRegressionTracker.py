@@ -1,3 +1,4 @@
+import datetime
 import email.utils
 import json
 import logging
@@ -195,11 +196,12 @@ def _error_message(response) -> str:
 
 def _retry_after(response):
     value = response.headers.get('Retry-After', '').strip()
-    if value.isdigit():
+    if value.isascii() and value.isdigit():
         seconds = int(value)
     else:
         try:
-            seconds = email.utils.parsedate_to_datetime(value).timestamp() - time.time()
+            date = email.utils.parsedate_to_datetime(value)
         except (TypeError, ValueError):
-            seconds = None
+            date = None
+        seconds = date and date.replace(tzinfo=date.tzinfo or datetime.timezone.utc).timestamp() - time.time()
     return seconds if seconds is not None and 0 <= seconds <= MAX_RETRY_AFTER_SECONDS else None

@@ -2,6 +2,7 @@ import dataclasses
 import json
 import logging
 import re
+import time
 
 import pytest
 import requests
@@ -545,11 +546,21 @@ def test__http_request__retries_503_after_retry_after_seconds(mocker, sleep):
     sleep.assert_called_once_with(5)
 
 
-def test__http_request__reads_retry_after_as_http_date(mocker, sleep):
+@pytest.fixture
+def utc_plus_3(monkeypatch):
+    monkeypatch.setenv('TZ', 'Europe/Moscow')
+    time.tzset()
+    yield
+    monkeypatch.undo()
+    time.tzset()
+
+
+@pytest.mark.parametrize('date', ['Tue, 03 Nov 2026 00:00:07 GMT', 'Tue, 03 Nov 2026 00:00:07 -0000'])
+def test__http_request__reads_retry_after_as_http_date(mocker, sleep, utc_plus_3, date):
     mocker.patch('visual_regression_tracker.visualRegressionTracker.time.time',
                  return_value=1793664000)  # Tue, 03 Nov 2026 00:00:00 GMT
     mocker.patch('requests.post', side_effect=[
-        mock_response(mocker, 503, None, headers={'Retry-After': 'Tue, 03 Nov 2026 00:00:07 GMT'}),
+        mock_response(mocker, 503, None, headers={'Retry-After': date}),
         mock_response(mocker, 200, {}),
     ])
 
@@ -570,7 +581,9 @@ def test__http_request__gives_up_after_3_retries(mocker, sleep):
     assert error.value.status_code == 503
 
 
-@pytest.mark.parametrize('headers', [{}, {'Retry-After': '61'}, {'Retry-After': '-1'}, {'Retry-After': 'soon'}])
+@pytest.mark.parametrize('headers', [
+    {}, {'Retry-After': '61'}, {'Retry-After': '-1'}, {'Retry-After': 'soon'}, {'Retry-After': '\u00b2'},
+])
 def test__http_request__does_not_retry_503_without_a_usable_retry_after(mocker, sleep, headers):
     post = mocker.patch('requests.post', return_value=mock_response(mocker, 503, None, reason='Service Unavailable',
                                                                     headers=headers))
