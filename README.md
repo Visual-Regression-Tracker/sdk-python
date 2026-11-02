@@ -189,5 +189,4 @@ If publishing fails, the tag and a draft release already exist: re-run the faile
 - [Visual Regression Tracker](https://github.com/Visual-Regression-Tracker/Visual-Regression-Tracker): the server and how to run it
 - [Python examples](https://github.com/Visual-Regression-Tracker/examples-python)
 - [Other SDKs and agents](https://github.com/Visual-Regression-Tracker)
-- [Releases](https://github.com/Visual-Regression-Tracker/sdk-python/releases) and [PyPI](https://pypi.org/project/visual-regression-tracker/)
 - [Licence: Apache-2.0](LICENSE)
