@@ -22,6 +22,11 @@ jobs:
             echo "::error::Tag $GITHUB_REF_NAME does not match version $version in pyproject.toml"
             exit 1
           fi
+      - name: Test
+        run: |
+          pip install '.[playwright]' -r requirements.txt
+          python -m playwright install --with-deps chromium
+          python -m pytest tests
       - name: Build
         run: pip install build && python -m build
       - uses: actions/upload-artifact@v7

@@ -46,7 +46,7 @@ config = Config(
     # enableSoftAssert - Log errors instead of exceptions
     enableSoftAssert=False,
 
-    # httpTimeoutInSeconds - Timeout of each request to the server
+    # httpTimeoutInSeconds - Timeout of each request to the server, 0 for none
     httpTimeoutInSeconds=30,
 )
 
@@ -272,3 +272,11 @@ The async API has `trackPageAsync` and `trackElementHandleAsync`. All four retur
     - `os: str`  operating system name, like Windows, Mac, etc.
     - `device: str`  device name, PC identifier, mobile identifier etc.
     - `viewport: str` viewport size.
+
+## Development
+
+```sh
+pip install -e '.[playwright]' -r requirements.txt
+python -m playwright install chromium
+python -m pytest
+```

@@ -38,7 +38,7 @@ class VisualRegressionTracker:
             method,
             data,
             self.headers,
-            self.config.httpTimeoutInSeconds,
+            self.config.httpTimeoutInSeconds or None,
         )
 
     def start(self) -> Build:
@@ -121,7 +121,10 @@ def _http_request(url: str, method: str, data: dict, headers: dict, timeout: flo
         hint = _HINTS.get(status)
         raise ServerError(status, f'{message} (hint: {hint})' if hint else message)
 
-    return response.json()
+    try:
+        return response.json()
+    except ValueError:
+        raise ServerError(status, f'response is not JSON: {response.text.strip()[:200]}')
 
 
 def _error_message(response) -> str:
@@ -130,5 +133,5 @@ def _error_message(response) -> str:
     except (ValueError, AttributeError):
         message = None
     if isinstance(message, list):
-        message = ', '.join(message)
+        message = ', '.join(map(str, message))
     return message or response.text.strip() or response.reason or 'no error message'

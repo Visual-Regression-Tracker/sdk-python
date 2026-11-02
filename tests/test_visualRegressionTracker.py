@@ -191,6 +191,15 @@ def test__start__should_not_double_the_slash_after_apiUrl(mock_request):
     assert mock_request.call_args[0][0] == 'http://localhost:4200/builds'
 
 
+def test__request__treats_zero_timeout_as_none(mock_request):
+    vrt = VisualRegressionTracker(dataclasses.replace(CONFIG, httpTimeoutInSeconds=0))
+    mock_request.return_value = {'id': '1312', 'projectId': 'asd'}
+
+    vrt.start()
+
+    assert mock_request.call_args[0][4] is None
+
+
 def test__stop__should_stop_build(vrt, mock_request, mocker):
     buildId = '1312'
     vrt.buildId = buildId
@@ -347,6 +356,7 @@ def test__http_request__success(mocker):
     (502, None, '<html>Bad Gateway</html>', 'Bad Gateway', '<html>Bad Gateway</html>'),
     (503, None, '', 'Service Unavailable', 'Service Unavailable'),
     (500, {'error': 'no message field'}, '', '', '{"error": "no message field"}'),
+    (400, {'message': [{'property': 'name'}]}, '', '', "{'property': 'name'}"),
 ])
 def test__http_request__raises_server_error_with_server_message(
         mocker, status_code, body, text, reason, expected_message):
@@ -358,6 +368,15 @@ def test__http_request__raises_server_error_with_server_message(
     assert error.value.status_code == status_code
     assert error.value.message == expected_message
     assert str(error.value) == f'HTTP {status_code}: {expected_message}'
+
+
+def test__http_request__raises_server_error_on_success_without_json(mocker):
+    mocker.patch('requests.post', return_value=mock_response(mocker, 200, None, '<html>Sign in</html>'))
+
+    with pytest.raises(ServerError, match='not JSON: <html>Sign in</html>') as error:
+        _http_request('url', 'post', {}, {}, 30)
+
+    assert error.value.status_code == 200
 
 
 @pytest.mark.parametrize('status_code,body,hint', [
