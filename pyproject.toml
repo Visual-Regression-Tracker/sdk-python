@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=77"]
+requires = ["setuptools>=77", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "visual_regression_tracker"
-version = "5.0.0"
+dynamic = ["version"]
 description = "Open source, self hosted solution for visual testing and managing results of visual testing."
 readme = "README.md"
 license = "Apache-2.0"
@@ -34,6 +34,8 @@ Issues = "https://github.com/Visual-Regression-Tracker/sdk-python/issues"
 
 [tool.setuptools]
 packages = ["visual_regression_tracker"]
+
+[tool.setuptools_scm]
 
 [tool.pytest.ini_options]
 python_classes = "NoThanks"
