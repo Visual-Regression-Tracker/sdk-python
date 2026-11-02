@@ -26,6 +26,7 @@ python -m playwright install
 | `ciBuildId` | `VRT_CIBUILDID` | none | CI build ID, such as the commit SHA; runs with the same ID share a build |
 | `enableSoftAssert` | `VRT_ENABLESOFTASSERT` | `false` | Log a failed check instead of raising `TestRunError` |
 | `httpTimeoutInSeconds` | `VRT_HTTPTIMEOUTINSECONDS` | `360` | How long to wait for the server's answer, `0` for no limit. Connecting is limited to 10 s. |
+| `sourceBranch` | `VRT_SOURCEBRANCH` | the project's main branch | Branch whose baselines `branchName` is compared with, such as the target branch of a pull request |
 
 The server compares images while it answers `track()`. With VLM checks or a busy comparison queue that can
 take minutes, so keep `httpTimeoutInSeconds` above 300.
@@ -55,7 +56,8 @@ override it. `Config.default(path)` reads another file.
     "branchName": "develop",
     "ciBuildId": "commit_sha",
     "enableSoftAssert": false,
-    "httpTimeoutInSeconds": 360
+    "httpTimeoutInSeconds": 360,
+    "sourceBranch": "main"
 }
 ```
 
@@ -67,6 +69,7 @@ VRT_BRANCHNAME="develop" \
 VRT_CIBUILDID="commit_sha" \
 VRT_ENABLESOFTASSERT=true \
 VRT_HTTPTIMEOUTINSECONDS=360 \
+VRT_SOURCEBRANCH="main" \
     python -m pytest
 ```
 
@@ -91,10 +94,17 @@ Without the context manager, call `build = vrt.start()` (returns `Build(id, proj
 | Field | Meaning |
 |---|---|
 | `name` | Required. Name of the image in VRT |
-| `imageBase64` | Required. The PNG image, base64 encoded |
-| `os`, `browser`, `viewport`, `device` | Optional. Together with `name` they pick the baseline |
+| `imageBase64` | The PNG image, base64 encoded, sent as JSON |
+| `imagePath` | Or: path of a PNG file, sent as multipart |
+| `imageBuffer` | Or: the PNG image as `bytes`, sent as multipart |
+| `os`, `browser`, `viewport`, `device`, `customTags` | Optional. Together with `name` they pick the baseline |
 | `diffTollerancePercent` | Optional. Allowed difference in %, default 0. The spelling is the API's. |
 | `ignoreAreas` | Optional. List of `IgnoreArea(x, y, width, height)` in pixels |
+| `comment` | Optional. Shown with the test run in the VRT app |
+| `merge` | Optional. `True`: approving this run on a feature branch updates the baseline of the branch it was compared with |
+
+Set exactly one of the image fields. Multipart avoids the server's JSON size limit (`BODY_PARSER_JSON_LIMIT`)
+and the base64 overhead, so prefer it for large screenshots.
 
 ### Playwright
 
@@ -112,15 +122,15 @@ with sync_playwright() as playwright:
         vrt.trackElementHandle(page.query_selector('#touchnav-wrapper'), 'Navigation')
 ```
 
-`browser` is the Playwright browser name and `viewport` the page's viewport size. The async API has
+The screenshot is sent as multipart. `browser` is the Playwright browser name and `viewport` the page's viewport size. The async API has
 `trackPageAsync` and `trackElementHandleAsync`.
 
 The last argument is optional: `PageTrackOptions` for `trackPage`, `ElementHandleTrackOptions` for
 `trackElementHandle`. Both take:
 
-- `diffTollerancePercent` and `ignoreAreas`, as in `TestRun`;
-- `agent: Agent(os, device, viewport)`: baseline fields Playwright doesn't know. `viewport` is used only for
-  element handles;
+- `diffTollerancePercent`, `ignoreAreas`, `customTags`, `comment` and `merge`, as in `TestRun`;
+- `agent: Agent(os, device, viewport)`: baseline fields Playwright doesn't know. `viewport` is used for
+  element handles and for pages without a viewport size;
 - `screenshotOptions`: arguments for Playwright's `screenshot()`. `PageScreenshotOptions` takes
   `full_page`, `clip`, `omit_background`, `timeout`, `type`, `quality` and `path`.
   `ElementHandleScreenshotOptions` takes the same, without `full_page` and `clip`.
@@ -158,6 +168,11 @@ All errors derive from `VisualRegressionTrackerError`.
 | `MissingConfigurationError` | A required option is not set. Has the `field`. |
 | `InvalidConfigurationError` | An option has an invalid value. Has the `field`. |
 | `VisualRegressionTrackerError` | `track` or `stop` before `start`. |
+| `ValueError` | A `TestRun` with more than one image field. |
+
+When the server answers 503 with a `Retry-After` of at most 60 seconds (the comparison queue is full, or the
+server is restarting), the SDK waits that long and sends the request again, up to 3 times, logging a warning
+each time. After that, or without a usable `Retry-After`, it raises `ServerError`.
 
 ## Development
 

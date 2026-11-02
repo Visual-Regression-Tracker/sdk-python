@@ -19,6 +19,7 @@ def config_file(tmpdir):
         'apiKey': 'file api key',
         'enableSoftAssert': True,
         'httpTimeoutInSeconds': 5,
+        'sourceBranch': 'file source branch',
     }))
     yield p
 
@@ -33,6 +34,7 @@ def config_env():
         'VRT_APIKEY': 'env api key',
         'VRT_ENABLESOFTASSERT': 'False',
         'VRT_HTTPTIMEOUTINSECONDS': '7.5',
+        'VRT_SOURCEBRANCH': 'env source branch',
     }
     yield env
 
@@ -46,6 +48,7 @@ def test_config_from_file(config_file):
     assert cfg.apiKey == 'file api key'
     assert cfg.enableSoftAssert == True
     assert cfg.httpTimeoutInSeconds == 5
+    assert cfg.sourceBranch == 'file source branch'
 
 
 def test_config_from_environment(config_env):
@@ -57,6 +60,7 @@ def test_config_from_environment(config_env):
     assert cfg.apiKey == 'env api key'
     assert cfg.enableSoftAssert == False
     assert cfg.httpTimeoutInSeconds == 7.5
+    assert cfg.sourceBranch == 'env source branch'
 
 
 def config_from_file(tmp_path, data):
@@ -67,6 +71,10 @@ def config_from_file(tmp_path, data):
 
 def test_config_timeout_defaults_to_360_seconds():
     assert Config().httpTimeoutInSeconds == 360
+
+
+def test_config_has_no_source_branch_by_default():
+    assert Config().sourceBranch is None
 
 
 def test_config_treats_empty_timeout_variable_as_unset():

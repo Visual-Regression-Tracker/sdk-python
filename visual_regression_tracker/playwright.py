@@ -1,4 +1,3 @@
-import base64
 import dataclasses
 import pathlib
 
@@ -39,6 +38,9 @@ class PageTrackOptions:
     ignoreAreas: List[IgnoreArea] = None
     screenshotOptions: PageScreenshotOptions = None
     agent: Agent = None
+    customTags: str = None
+    comment: str = None
+    merge: bool = None
 
 
 @dataclasses.dataclass
@@ -47,6 +49,9 @@ class ElementHandleTrackOptions:
     ignoreAreas: List[IgnoreArea] = None
     screenshotOptions: ElementHandleScreenshotOptions = None
     agent: Agent = None
+    customTags: str = None
+    comment: str = None
+    merge: bool = None
 
 
 class PlaywrightMixin:
@@ -60,21 +65,8 @@ class PlaywrightMixin:
             name: str,
             options: PageTrackOptions = None
     ):
-        viewportSize = page.viewport_size
-        screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
-        screenshot = page.screenshot(**screenshotOptions)
-        imageBase64 = base64.b64encode(screenshot).decode('ascii')
-
-        return self.track(TestRun(
-            name,
-            imageBase64,
-            options.agent.os if options and options.agent else None,
-            self.browser.name,
-            f'{viewportSize["width"]}x{viewportSize["height"]}' if viewportSize else None,
-            options.agent.device if options and options.agent else None,
-            options.diffTollerancePercent if options else None,
-            options.ignoreAreas if options else None,
-        ))
+        screenshot = page.screenshot(**_screenshotOptions(options))
+        return self.track(self._testRun(name, screenshot, options, _viewport(page)))
 
     async def trackPageAsync(
             self,
@@ -82,22 +74,8 @@ class PlaywrightMixin:
             name: str,
             options: PageTrackOptions = None
     ):
-        viewportSize = page.viewport_size
-
-        screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
-        screenshot = await page.screenshot(**screenshotOptions)
-        imageBase64 = base64.b64encode(screenshot).decode('ascii')
-
-        return self.track(TestRun(
-            name,
-            imageBase64,
-            options.agent.os if options and options.agent else None,
-            self.browser.name,
-            f'{viewportSize["width"]}x{viewportSize["height"]}' if viewportSize else None,
-            options.agent.device if options and options.agent else None,
-            options.diffTollerancePercent if options else None,
-            options.ignoreAreas if options else None,
-        ))
+        screenshot = await page.screenshot(**_screenshotOptions(options))
+        return self.track(self._testRun(name, screenshot, options, _viewport(page)))
 
     def trackElementHandle(
             self,
@@ -105,20 +83,8 @@ class PlaywrightMixin:
             name: str,
             options: ElementHandleTrackOptions = None
     ):
-        screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
-        screenshot = elementHandle.screenshot(**screenshotOptions)
-        imageBase64 = base64.b64encode(screenshot).decode('ascii')
-
-        return self.track(TestRun(
-            name,
-            imageBase64,
-            options.agent.os if options and options.agent else None,
-            self.browser.name,
-            options.agent.viewport if options and options.agent else None,
-            options.agent.device if options and options.agent else None,
-            options.diffTollerancePercent if options else None,
-            options.ignoreAreas if options else None,
-        ))
+        screenshot = elementHandle.screenshot(**_screenshotOptions(options))
+        return self.track(self._testRun(name, screenshot, options))
 
     async def trackElementHandleAsync(
             self,
@@ -126,20 +92,40 @@ class PlaywrightMixin:
             name: str,
             options: ElementHandleTrackOptions = None
     ):
-        screenshotOptions = _to_dict(options.screenshotOptions) if options else {}
-        screenshot = await elementHandle.screenshot(**screenshotOptions)
-        imageBase64 = base64.b64encode(screenshot).decode('ascii')
+        screenshot = await elementHandle.screenshot(**_screenshotOptions(options))
+        return self.track(self._testRun(name, screenshot, options))
 
-        return self.track(TestRun(
-            name,
-            imageBase64,
-            options.agent.os if options and options.agent else None,
-            self.browser.name,
-            options.agent.viewport if options and options.agent else None,
-            options.agent.device if options and options.agent else None,
-            options.diffTollerancePercent if options else None,
-            options.ignoreAreas if options else None,
-        ))
+    def _testRun(
+            self,
+            name: str,
+            screenshot: bytes,
+            options: Union[PageTrackOptions, ElementHandleTrackOptions, None],
+            viewport: str = None,
+    ) -> TestRun:
+        options = options or ElementHandleTrackOptions()
+        agent = options.agent or Agent()
+        return TestRun(
+            name=name,
+            imageBuffer=screenshot,
+            os=agent.os,
+            browser=self.browser.name,
+            viewport=viewport or agent.viewport,
+            device=agent.device,
+            diffTollerancePercent=options.diffTollerancePercent,
+            ignoreAreas=options.ignoreAreas,
+            customTags=options.customTags,
+            comment=options.comment,
+            merge=options.merge,
+        )
+
+
+def _screenshotOptions(options) -> dict:
+    return _to_dict(options.screenshotOptions) if options and options.screenshotOptions else {}
+
+
+def _viewport(page) -> str:
+    size = page.viewport_size
+    return f'{size["width"]}x{size["height"]}' if size else None
 
 
 class PlaywrightVisualRegressionTracker(PlaywrightMixin, VisualRegressionTracker):
