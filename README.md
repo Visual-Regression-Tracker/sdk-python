@@ -286,3 +286,18 @@ pip install -e '.[playwright]' -r requirements.txt
 python -m playwright install chromium
 python -m pytest
 ```
+
+## Releasing
+
+Merging to `master` releases. [semantic-release](https://semantic-release.gitbook.io/) reads the
+[Conventional Commits](https://www.conventionalcommits.org/) since the last tag: `fix:`, `perf:` and `revert:` make a
+patch, `feat:` a minor, and `!` after the type (`feat!:`) or a `BREAKING CHANGE:` footer a major release.
+Other types (`chore:`, `ci:`, `docs:`, ...) release nothing. A squash merge takes the PR title (or, for a
+single-commit PR, that commit's message) as its subject, so keep both conventional.
+
+The `Release` workflow runs the tests, tags the commit (`5.1.0`, no `v`), publishes to PyPI and then
+publishes the GitHub release with the generated notes. The package version comes from the tag
+(setuptools-scm); nothing is committed back.
+
+If publishing fails, the tag and a draft release already exist: re-run the failed jobs of that run
+(not the whole run) before anything else is merged.
