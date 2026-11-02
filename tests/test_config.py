@@ -73,6 +73,12 @@ def test_config_treats_empty_timeout_variable_as_unset():
     assert Config.from_environment({'VRT_HTTPTIMEOUTINSECONDS': ''}).httpTimeoutInSeconds == 360
 
 
+def test_config_from_environment_reads_os_environ_by_default(monkeypatch):
+    monkeypatch.setenv('VRT_PROJECT', 'env project')
+
+    assert Config.from_environment().project == 'env project'
+
+
 def test_config_treats_empty_variables_as_unset():
     cfg = Config.from_environment({'VRT_CIBUILDID': '', 'VRT_APIURL': ''})
 
@@ -80,7 +86,7 @@ def test_config_treats_empty_variables_as_unset():
     assert cfg.apiUrl == 'http://localhost:4200'
 
 
-@pytest.mark.parametrize('value', ['-1', 'soon', 'nan'])
+@pytest.mark.parametrize('value', ['-1', 'soon', 'nan', 'inf'])
 def test_config_rejects_invalid_timeout_variable(value):
     with pytest.raises(InvalidConfigurationError, match='VRT_HTTPTIMEOUTINSECONDS') as error:
         Config.from_environment({'VRT_HTTPTIMEOUTINSECONDS': value})

@@ -3,6 +3,7 @@ import typing
 import os
 import os.path
 import json
+import math
 import pathlib
 
 from .exceptions import InvalidConfigurationError, MissingConfigurationError
@@ -72,6 +73,7 @@ class Config:
         return cfg
 
     def apply_environment(self, environment: dict = None):
+        environment = os.environ if environment is None else environment
         fields = {f.name:f.type for f in dataclasses.fields(self)}
         for field_name, env_name in ENV_MAPPING.items():
             val = environment.get(env_name)
@@ -94,7 +96,7 @@ class Config:
     @staticmethod
     def from_environment(environment: dict = None):
         cfg = Config()
-        cfg.apply_environment(environment)
+        cfg.apply_environment(environment or os.environ)
         return cfg
 
     def check_complete(self):
@@ -104,4 +106,5 @@ class Config:
 
 
 def _is_seconds(value) -> bool:
-    return value is None or (isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0)
+    return value is None or (
+        isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value >= 0)

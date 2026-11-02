@@ -17,7 +17,7 @@ class ServerError(VisualRegressionTrackerError):
 
 
 class RequestError(VisualRegressionTrackerError):
-    """A request to the VisualRegressionTracker server got no response."""
+    """A request to the VisualRegressionTracker server could not be sent or got no response."""
 
     def __init__(self, url: str, message: str):
         self.url = url
