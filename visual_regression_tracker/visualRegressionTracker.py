@@ -83,7 +83,6 @@ class VisualRegressionTracker:
         )
 
         result = self._request('post', 'test-runs', data)
-        result['status'] = TestRunStatus(result['status'])
         testRunResult = _from_dict(result, TestRunResponse)
 
         return testRunResult

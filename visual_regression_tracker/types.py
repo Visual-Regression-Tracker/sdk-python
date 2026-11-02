@@ -89,5 +89,5 @@ def _to_dict(obj):
 
 
 def _from_dict(data, clazz):
-    obj = dacite.from_dict(clazz, data)
+    obj = dacite.from_dict(clazz, data, dacite.Config(cast=[enum.Enum]))
     return obj

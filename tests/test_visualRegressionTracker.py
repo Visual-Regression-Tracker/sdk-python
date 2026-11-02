@@ -1,3 +1,5 @@
+import dataclasses
+import json
 import logging
 import re
 
@@ -181,7 +183,7 @@ def test__start__should_start_build(vrt, mock_request):
 
 
 def test__start__should_not_double_the_slash_after_apiUrl(mock_request):
-    vrt = VisualRegressionTracker(Config(**{**vars(CONFIG), 'apiUrl': 'http://localhost:4200/'}))
+    vrt = VisualRegressionTracker(dataclasses.replace(CONFIG, apiUrl='http://localhost:4200/'))
     mock_request.return_value = {'id': '1312', 'projectId': 'asd'}
 
     vrt.start()
@@ -314,11 +316,12 @@ def test__submitTestResults__should_throw_not_started(vrt, mocker):
 def mock_response(mocker, status_code, body=None, text='', reason=''):
     response = mocker.Mock()
     response.status_code = status_code
-    response.text = text
     response.reason = reason
     if body is None:
+        response.text = text
         response.json.side_effect = ValueError('Expecting value')
     else:
+        response.text = json.dumps(body)
         response.json.return_value = body
     return response
 
@@ -342,8 +345,8 @@ def test__http_request__success(mocker):
     (400, {'statusCode': 400, 'message': ['name must be a string', 'branchName must be a string']}, '', '',
      'name must be a string, branchName must be a string'),
     (502, None, '<html>Bad Gateway</html>', 'Bad Gateway', '<html>Bad Gateway</html>'),
-    (503, {}, '', 'Service Unavailable', 'Service Unavailable'),
-    (500, {'error': 'no message field'}, '{"error": "no message field"}', '', '{"error": "no message field"}'),
+    (503, None, '', 'Service Unavailable', 'Service Unavailable'),
+    (500, {'error': 'no message field'}, '', '', '{"error": "no message field"}'),
 ])
 def test__http_request__raises_server_error_with_server_message(
         mocker, status_code, body, text, reason, expected_message):

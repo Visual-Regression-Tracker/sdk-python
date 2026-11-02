@@ -63,18 +63,19 @@ def test_config_timeout_defaults_to_30_seconds():
     assert Config().httpTimeoutInSeconds == 30
 
 
-@pytest.mark.parametrize('make_config', [
-    lambda: Config(apiUrl='http://vrt:4200/'),
-    lambda: Config.from_environment({'VRT_APIURL': 'http://vrt:4200/'}),
-])
-def test_config_strips_trailing_slash_from_apiUrl(make_config):
-    assert make_config().apiUrl == 'http://vrt:4200'
-
-
-def test_config_from_file_strips_trailing_slash_from_apiUrl(tmp_path):
+def config_from_file(tmp_path, data):
     path = tmp_path / 'vrt.json'
-    path.write_text(json.dumps({'apiUrl': 'http://vrt:4200/'}))
-    assert Config.from_file(path).apiUrl == 'http://vrt:4200'
+    path.write_text(json.dumps(data))
+    return Config.from_file(path)
+
+
+@pytest.mark.parametrize('make_config', [
+    lambda tmp_path: Config(apiUrl='http://vrt:4200/'),
+    lambda tmp_path: Config.from_environment({'VRT_APIURL': 'http://vrt:4200/'}),
+    lambda tmp_path: config_from_file(tmp_path, {'apiUrl': 'http://vrt:4200/'}),
+])
+def test_config_strips_trailing_slash_from_apiUrl(make_config, tmp_path):
+    assert make_config(tmp_path).apiUrl == 'http://vrt:4200'
 
 
 def test_default_uses_path(config_file):
