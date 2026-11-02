@@ -1,10 +1,12 @@
 {
-  "branches": ["master"],
   "tagFormat": "${version}",
   "plugins": [
     ["@semantic-release/commit-analyzer", { "preset": "conventionalcommits" }],
     ["@semantic-release/release-notes-generator", { "preset": "conventionalcommits" }],
-    ["@semantic-release/github", { "draftRelease": true, "successComment": false, "releasedLabels": false }],
-    ["@semantic-release/exec", { "successCmd": "echo \"version=${nextRelease.version}\" >> \"$GITHUB_OUTPUT\"" }]
+    ["@semantic-release/exec", {
+      "prepareCmd": "SETUPTOOLS_SCM_PRETEND_VERSION=${nextRelease.version} python -m build",
+      "successCmd": "echo \"version=${nextRelease.version}\" >> \"$GITHUB_OUTPUT\""
+    }],
+    ["@semantic-release/github", { "draftRelease": true, "successCommentCondition": false }]
   ]
 }

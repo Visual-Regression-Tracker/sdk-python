@@ -27,13 +27,13 @@ jobs:
           python-version: '3.14'
       - name: Test
         run: |
-          pip install '.[playwright]' -r requirements.txt
+          pip install build '.[playwright]' -r requirements.txt
           python -m playwright install --with-deps chromium
           python -m pytest tests
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - name: Tag and draft the GitHub release
+      - name: Build, tag and draft the GitHub release
         id: semantic-release
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -43,11 +43,6 @@ jobs:
           -p @semantic-release/exec@7.1.0
           -p conventional-changelog-conventionalcommits@10.4.1
           semantic-release
-      - name: Build
-        if: steps.semantic-release.outputs.version
-        env:
-          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.semantic-release.outputs.version }}
-        run: pip install build && python -m build
       - uses: actions/upload-artifact@v7
         if: steps.semantic-release.outputs.version
         with:
