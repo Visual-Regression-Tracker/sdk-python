@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: 24
       - name: Install the release tooling
-        run: npm install --no-package-lock
+        run: npm install --no-package-lock --no-audit --no-fund
       - name: Build, tag and draft the GitHub release
         id: semantic-release
         env:

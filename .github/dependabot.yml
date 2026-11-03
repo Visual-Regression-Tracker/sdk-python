@@ -32,6 +32,7 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    open-pull-requests-limit: 5
     groups:
       release-tooling:
         patterns:
@@ -39,6 +40,10 @@ updates:
         update-types:
           - minor
           - patch
+      release-tooling-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
     ignore:
       # preset 10 needs conventional-changelog-writer 9; semantic-release 25 bundles writer 8
       - dependency-name: conventional-changelog-conventionalcommits
