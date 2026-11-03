@@ -27,6 +27,24 @@ updates:
         patterns:
           - "*"
 
+  - package-ecosystem: npm
+    # package.json holds only the release tooling that release.yml installs
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      release-tooling:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # preset 10 needs conventional-changelog-writer 9; semantic-release 25 bundles writer 8
+      - dependency-name: conventional-changelog-conventionalcommits
+        update-types:
+          - version-update:semver-major
+
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
