@@ -22,8 +22,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install Tox
-        run: pip install tox tox-gh-actions
+        run: pip install tox
       - name: Install Playwright system dependencies
         run: pip install playwright && python -m playwright install-deps chromium
       - name: Run Tox
-        run: tox
+        run: tox -e py
