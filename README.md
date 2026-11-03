@@ -3,7 +3,7 @@
 [![CI](https://github.com/Visual-Regression-Tracker/sdk-python/actions/workflows/workflow.yml/badge.svg)](https://github.com/Visual-Regression-Tracker/sdk-python/actions/workflows/workflow.yml)
 [![PyPI](https://img.shields.io/pypi/v/visual-regression-tracker)](https://pypi.org/project/visual-regression-tracker/)
 
-Requires Python 3.11 or later. Use 5.0 or later of this SDK with VRT 6.0; image URLs in results need VRT server 5.0.10 or later.
+Requires Python 3.15 or later. Use 5.0 or later of this SDK with VRT 6.0; image URLs in results need VRT server 5.0.10 or later.
 
 ## Install
 
