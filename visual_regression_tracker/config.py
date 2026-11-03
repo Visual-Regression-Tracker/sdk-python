@@ -20,6 +20,7 @@ ENV_MAPPING = {
     'apiKey': 'VRT_APIKEY',
     'enableSoftAssert': 'VRT_ENABLESOFTASSERT',
     'httpTimeoutInSeconds': 'VRT_HTTPTIMEOUTINSECONDS',
+    'sourceBranch': 'VRT_SOURCEBRANCH',
 }
 
 
@@ -32,6 +33,7 @@ class Config:
     apiKey: str = None
     enableSoftAssert: bool = False
     httpTimeoutInSeconds: float = 360
+    sourceBranch: str = None
 
     def __setattr__(self, name, value):
         if name == 'apiUrl' and isinstance(value, str):

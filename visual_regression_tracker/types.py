@@ -1,6 +1,7 @@
 import dataclasses
 import enum
 import logging
+from os import PathLike
 import typing
 import dacite
 
@@ -23,6 +24,11 @@ class TestRun:
     device: str = None
     diffTollerancePercent: float = None
     ignoreAreas: typing.List[IgnoreArea] = None
+    customTags: str = None
+    comment: str = None
+    merge: bool = None
+    imagePath: typing.Union[str, PathLike] = None
+    imageBuffer: bytes = None
 
 
 @dataclasses.dataclass
