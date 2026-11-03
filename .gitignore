@@ -9,3 +9,4 @@ __pycache__
 .tox
 .vscode
 .python-version
+node_modules/

@@ -33,17 +33,13 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+      - name: Install the release tooling
+        run: npm install --no-package-lock --no-audit --no-fund
       - name: Build, tag and draft the GitHub release
         id: semantic-release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        # Preset 10+ needs conventional-changelog-writer 9; semantic-release 25 bundles writer 8.
-        run: >
-          npx --yes
-          -p semantic-release@25.0.9
-          -p @semantic-release/exec@7.1.0
-          -p conventional-changelog-conventionalcommits@9.3.1
-          semantic-release
+        run: npx semantic-release
       - uses: actions/upload-artifact@v7
         if: steps.semantic-release.outputs.version
         with:
