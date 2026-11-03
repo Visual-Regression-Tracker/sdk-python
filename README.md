@@ -199,6 +199,22 @@ publishes the GitHub release with the generated notes. The package version comes
 If publishing fails, the tag and a draft release already exist: re-run the failed jobs of that run
 (not the whole run) before anything else is merged.
 
+### Release candidates
+
+Every push to `next` releases a pre-release of the next version, tagged `X.Y.Z-rc.N`
+(`6.0.0-rc.1` once a breaking change is in).
+It goes to PyPI as a pre-release, `X.Y.ZrcN` (setuptools-scm normalizes the tag to PEP 440), so
+`pip install visual-regression-tracker` keeps installing the last stable release and
+`pip install --pre visual-regression-tracker` installs the candidate.
+Its GitHub release is marked as a pre-release.
+
+Breaking changes go into `next` through pull requests that target it. Merge `master` into `next` when
+`master` gets new commits.
+
+To release the final version, merge `next` into `master` with a merge commit, not a squash, so that
+semantic-release still sees the breaking commits. That push releases it. The repository deletes merged
+branches, so create `next` again from `master` before the next round of candidates.
+
 ## Links
 
 - [Visual Regression Tracker](https://github.com/Visual-Regression-Tracker/Visual-Regression-Tracker): the server and how to run it
